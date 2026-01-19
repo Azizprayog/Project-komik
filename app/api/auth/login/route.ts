@@ -1,7 +1,6 @@
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const { username, password } = await req.json();
@@ -10,28 +9,28 @@ export async function POST(req: Request) {
     where: { username },
   });
 
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 401 });
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json(
+      { message: "Unauthorized" },
+      { status: 401 }
+    );
   }
 
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
-    return NextResponse.json({ error: "Wrong password" }, { status: 401 });
+    return NextResponse.json(
+      { message: "Invalid credentials" },
+      { status: 401 }
+    );
   }
 
-  const cookieStore = await cookies();
+  // ✅ SET COOKIE ADMIN
+  const res = NextResponse.json({ success: true });
 
-  cookieStore.set(
-    "session",
-    JSON.stringify({
-      id: user.id,
-      role: user.role,
-    }),
-    {
-      httpOnly: true,
-      path: "/",
-    }
-  );
+  res.cookies.set("admin_auth", "true", {
+    httpOnly: true,
+    path: "/",
+  });
 
-  return NextResponse.json({ success: true });
+  return res;
 }

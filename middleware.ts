@@ -2,22 +2,27 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const session = req.cookies.get("session");
   const { pathname } = req.nextUrl;
 
-  // belum login → ga boleh masuk admin
-  if (pathname.startsWith("/admin") && !session) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+  // hanya proteksi admin
+  if (pathname.startsWith("/admin")) {
+    // ❗ BIAR LOGIN ADMIN TIDAK KELOOP
+    if (pathname === "/admin/login") {
+      return NextResponse.next();
+    }
 
-  // sudah login → ga boleh balik ke login
-  if (pathname === "/login" && session) {
-    return NextResponse.redirect(new URL("/admin", req.url));
+    const isAdmin = req.cookies.get("admin_auth")?.value;
+
+    if (!isAdmin) {
+      return NextResponse.redirect(
+        new URL("/admin/login", req.url)
+      );
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/login"],
+  matcher: ["/admin/:path*"],
 };
