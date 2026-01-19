@@ -1,49 +1,50 @@
+import { prisma } from "@/lib/prisma";
+import { ComicUI } from "@/lib/types";
 import HomeBanner from "@/components/HomeBanner";
 import ComicGrid from "@/components/ComicGrid";
 import SectionHeader from "@/components/SectionHeader";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+function toComicUI(c: any): ComicUI | null {
+  if (!c || typeof c.id !== "number") return null;
+
+  return {
+    id: c.id,
+    title: c.title ?? "Untitled",
+    synopsis: c.synopsis ?? "",
+    genres: c.genres ?? "",
+  };
+}
+
 export default async function HomePage() {
-  const latestComics = await prisma.comic.findMany({
+  const latest = await prisma.comic.findMany({
     orderBy: { updatedAt: "desc" },
     take: 8,
   });
 
-  const popularComics = await prisma.comic.findMany({
+  const popular = await prisma.comic.findMany({
     where: { isPopular: true },
     take: 8,
   });
 
-  const bannerComics = latestComics.slice(0, 4);
+  const latestSafe = latest
+    .map(toComicUI)
+    .filter(Boolean) as ComicUI[];
+
+  const popularSafe = popular
+    .map(toComicUI)
+    .filter(Boolean) as ComicUI[];
 
   return (
-    <main className="space-y-20 px-6 py-10">
-      <HomeBanner
-        comics={bannerComics.map((c) => ({
-          id: c.id,
-          title: c.title,
-          synopsis: c.synopsis ?? "",
-          genre: c.genres ?? "",
-        }))}
-      />
+    <div className="space-y-10">
+      <HomeBanner comics={latestSafe.slice(0, 4)} />
 
-      <section>
-        <SectionHeader
-          title="Latest Updates"
-          href="/comics/latest"
-        />
-        <ComicGrid comics={latestComics} />
-      </section>
+      <SectionHeader title="Komik Terbaru" />
+      <ComicGrid comics={latestSafe} />
 
-      <section>
-        <SectionHeader
-          title="Popular Comics"
-          href="/comics/popular"
-        />
-        <ComicGrid comics={popularComics} />
-      </section>
-    </main>
+      <SectionHeader title="Komik Populer" />
+      <ComicGrid comics={popularSafe} />
+    </div>
   );
 }

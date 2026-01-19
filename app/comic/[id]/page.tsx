@@ -3,57 +3,29 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import ComicHeader from "@/components/ComicHeader";
 import ChapterSection from "@/components/ChapterSection";
-import { notFound } from "next/navigation";
 
 const PER_PAGE = 20;
-
-type PageProps = {
-  params: {
-    id?: string;
-  };
-  searchParams?: {
-    page?: string;
-  };
-};
 
 export default async function ComicDetail({
   params,
   searchParams,
-}: PageProps) {
-  /* ===============================
-     1. VALIDASI PARAM ID
-  =============================== */
-  if (!params?.id) {
-    notFound();
-  }
-
+}: {
+  params: { id: string };
+  searchParams: { page?: string };
+}) {
   const comicId = Number(params.id);
   if (Number.isNaN(comicId)) {
-    notFound();
+    return <div>ID komik tidak valid</div>;
   }
 
-  /* ===============================
-     2. VALIDASI PAGE
-  =============================== */
-  const page = Math.max(
-    1,
-    Number(searchParams?.page ?? 1)
-  );
+  const page = Number(searchParams.page ?? 1);
 
-  /* ===============================
-     3. AMBIL DATA COMIC
-  =============================== */
   const comic = await prisma.comic.findUnique({
     where: { id: comicId },
   });
 
-  if (!comic) {
-    notFound();
-  }
+  if (!comic) return <div>Komik tidak ditemukan</div>;
 
-  /* ===============================
-     4. AMBIL CHAPTERS
-  =============================== */
   const chapters = await prisma.chapter.findMany({
     where: { comicId },
     orderBy: { number: "desc" },
@@ -65,25 +37,14 @@ export default async function ComicDetail({
     where: { comicId },
   });
 
-  const totalPage = Math.max(
-    1,
-    Math.ceil(totalChapter / PER_PAGE)
-  );
-
-  /* ===============================
-     5. RENDER
-  =============================== */
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-      {/* Header */}
       <ComicHeader comic={comic} />
-
-      {/* Chapter list */}
       <ChapterSection
         comicId={comicId}
-        chapters={chapters ?? []}
+        chapters={chapters}
         page={page}
-        totalPage={totalPage}
+        totalPage={Math.ceil(totalChapter / PER_PAGE)}
       />
     </div>
   );

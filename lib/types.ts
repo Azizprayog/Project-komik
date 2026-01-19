@@ -1,6 +1,7 @@
-export type Comic = {
+// lib/types.ts
+export type ComicUI = {
   id: number;
   title: string;
-  synopsis?: string | null;
-  genres?: string | null;
+  synopsis: string;
+  genres: string;
 };
