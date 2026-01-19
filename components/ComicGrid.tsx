@@ -1,5 +1,5 @@
-import ComicCard from "./ComicCard";
 import { ComicUI } from "@/lib/types";
+import ComicCard from "./ComicCard";
 
 export default function ComicGrid({ comics }: { comics: ComicUI[] }) {
   return (

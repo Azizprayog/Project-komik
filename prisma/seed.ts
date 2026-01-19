@@ -4,7 +4,11 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // ===== ADMIN =====
+  console.log("🌱 Seeding database...");
+
+  // ======================
+  // ADMIN
+  // ======================
   const password = await bcrypt.hash("admin123", 10);
 
   await prisma.user.upsert({
@@ -19,24 +23,40 @@ async function main() {
 
   console.log("✅ Admin created");
 
-  // ===== CHAPTER =====
-  const comics = await prisma.comic.findMany();
+  // ======================
+  // COMIC
+  // ======================
+  const comic = await prisma.comic.create({
+    data: {
+      title: "Komik Contoh",
+      synopsis: "Ini komik hasil seed",
+      genres: "Action, Fantasy",
+      isPopular: true,
+    },
+  });
 
-  for (const comic of comics) {
-    const chapters = Array.from({ length: 10 }, (_, i) => ({
-      number: i + 1,
-      comicId: comic.id,
-    }));
+  console.log("✅ Comic created");
 
-    await prisma.chapter.createMany({
-      data: chapters,
-      skipDuplicates: true,
-    });
-  }
+  // ======================
+  // CHAPTER (TANPA title)
+  // ======================
+  const chapters = Array.from({ length: 10 }, (_, i) => ({
+    number: i + 1,
+    comicId: comic.id,
+  }));
 
-  console.log("✅ Chapters seeded");
+  await prisma.chapter.createMany({
+    data: chapters,
+  });
+
+  console.log("✅ Chapters created");
 }
 
 main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .catch((e) => {
+    console.error("❌ Seed error:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

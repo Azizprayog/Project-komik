@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/prisma";
-import { ComicUI } from "@/lib/types";
+export const dynamic = "force-dynamic";
+
 import HomeBanner from "@/components/HomeBanner";
 import ComicGrid from "@/components/ComicGrid";
 import SectionHeader from "@/components/SectionHeader";
-
-export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/prisma";
+import { ComicUI } from "@/lib/types";
 
 function toComicUI(c: any): ComicUI | null {
   if (!c || typeof c.id !== "number") return null;
@@ -38,6 +38,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10">
+      {/* 🔥 BANNER */}
       <HomeBanner comics={latestSafe.slice(0, 4)} />
 
       <SectionHeader title="Komik Terbaru" />

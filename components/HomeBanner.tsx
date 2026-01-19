@@ -1,34 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-
-type BannerComic = {
-  id: number;
-  title: string;
-  synopsis: string;
-  genre: string;
-};
+import { ComicUI } from "@/lib/types";
 
 type Props = {
-  comics: BannerComic[];
+  comics: ComicUI[];
 };
 
 export default function HomeBanner({ comics }: Props) {
   const [index, setIndex] = useState(0);
   const total = comics.length;
+
+  if (total === 0) return null;
+
   const comic = comics[index];
 
   const next = () => setIndex((i) => (i + 1) % total);
   const prev = () => setIndex((i) => (i - 1 + total) % total);
 
-  // 🔥 AUTO SLIDE
+  // auto slide
   useEffect(() => {
     if (total <= 1) return;
 
     const id = setInterval(() => {
       setIndex((i) => (i + 1) % total);
-    }, 5000); // every 5 seconds
+    }, 5000);
 
     return () => clearInterval(id);
   }, [total]);
@@ -36,17 +33,16 @@ export default function HomeBanner({ comics }: Props) {
   return (
     <div className="relative h-[320px] rounded-xl overflow-hidden bg-gradient-to-br from-black via-slate-900 to-black">
       <Link href={`/comic/${comic.id}`} className="block h-full">
-        <div
-          key={comic.id}
-          className="h-full px-10 py-8 flex flex-col justify-center max-w-2xl transition-all duration-500 ease-out">         <h2 className="text-3xl font-bold mb-2">{comic.title}</h2>
-          <p className="text-purple-400 text-sm mb-3">{comic.genre}</p>
+        <div className="h-full px-10 py-8 flex flex-col justify-center max-w-2xl">
+          <h2 className="text-3xl font-bold mb-2">{comic.title}</h2>
+          <p className="text-purple-400 text-sm mb-3">{comic.genres}</p>
           <p className="text-slate-300 text-sm line-clamp-3">
             {comic.synopsis}
           </p>
         </div>
       </Link>
 
-      {/* CONTROLS – MangaDex style */}
+      {/* controls */}
       <div className="absolute bottom-6 right-8 flex items-center gap-3 bg-black/40 backdrop-blur px-3 py-1.5 rounded-full">
         <button
           onClick={prev}
@@ -55,7 +51,9 @@ export default function HomeBanner({ comics }: Props) {
           ‹
         </button>
 
-        <span className="text-xs text-slate-300">No. {index + 1}</span>
+        <span className="text-xs text-slate-300">
+          {index + 1} / {total}
+        </span>
 
         <button
           onClick={next}
