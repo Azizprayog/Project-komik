@@ -23,8 +23,7 @@ export default function Navbar() {
       <div className="flex items-center gap-6">
         {navItems.map((item) => {
           const isActive =
-            pathname === item.href ||
-            pathname.startsWith(item.href + "/");
+            pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
             <Link
@@ -34,9 +33,8 @@ export default function Navbar() {
                 "relative text-sm transition",
                 isActive
                   ? "text-purple-400"
-                  : "text-slate-300 hover:text-white"
-              )}
-            >
+                  : "text-slate-300 hover:text-white",
+              )}>
               {item.label}
 
               {/* ACTIVE INDICATOR */}
@@ -50,8 +48,7 @@ export default function Navbar() {
         {/* USER LOGIN (BUKAN ADMIN) */}
         <Link
           href="/login"
-          className="ml-4 px-4 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-sm text-white transition"
-        >
+          className="ml-4 px-4 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-sm text-white transition">
           Login
         </Link>
       </div>

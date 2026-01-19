@@ -10,20 +10,16 @@ datasource db {
 }
 
 model Comic {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   title     String
   synopsis  String?
   genres    String?
-
-  views     Int      @default(0)
-  bookmarks Int      @default(0)
-
+  views     Int       @default(0)
+  bookmarks Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isPopular Boolean   @default(false)
   chapters  Chapter[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  isPopular Boolean  @default(false)
 }
 
 model Chapter {
@@ -31,8 +27,7 @@ model Chapter {
   number    Int
   comicId   Int
   createdAt DateTime @default(now())
-
-  comic Comic @relation(fields: [comicId], references: [id], onDelete: Cascade)
+  comic     Comic    @relation(fields: [comicId], references: [id], onDelete: Cascade)
 
   @@unique([comicId, number])
 }

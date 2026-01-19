@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { toComicUI } from "@/lib/mapper";
 import ComicGrid from "@/components/ComicGrid";
 import SectionHeader from "@/components/SectionHeader";
 
-const PER_PAGE = 24;
+const PER_PAGE = 10;
 
 export default async function LatestPage({
   searchParams,
@@ -21,28 +22,17 @@ export default async function LatestPage({
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-6">
-      <SectionHeader title="Semua Komik Terbaru" />
+      <SectionHeader title="Semua Update Terbaru" />
 
-      <ComicGrid comics={comics} />
+      <ComicGrid comics={comics.map(toComicUI)} />
 
-      {/* PAGINATION */}
-      <div className="flex justify-center gap-3 pt-6">
+      {/* Pagination */}
+      <div className="flex justify-center gap-3">
         {page > 1 && (
-          <a
-            href={`/latest?page=${page - 1}`}
-            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
-          >
-            Prev
-          </a>
+          <a href={`/comics/latest?page=${page - 1}`}>Prev</a>
         )}
-
         {page * PER_PAGE < total && (
-          <a
-            href={`/latest?page=${page + 1}`}
-            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
-          >
-            Next
-          </a>
+          <a href={`/comics/latest?page=${page + 1}`}>Next</a>
         )}
       </div>
     </div>

@@ -8,13 +8,13 @@ export default function SectionHeader({
   href?: string;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold text-white">{title}</h2>
+    <div className="flex items-center justify-between">
+      <h2 className="text-xl font-semibold">{title}</h2>
 
       {href && (
         <Link
           href={href}
-          className="text-sm text-purple-400 hover:text-purple-300"
+          className="text-sm text-purple-400 hover:underline"
         >
           View all →
         </Link>

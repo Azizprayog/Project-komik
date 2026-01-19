@@ -1,47 +1,30 @@
-export const dynamic = "force-dynamic";
-
-import HomeBanner from "@/components/HomeBanner";
+import { prisma } from "@/lib/prisma";
+import { toComicUI } from "@/lib/mapper";
 import ComicGrid from "@/components/ComicGrid";
 import SectionHeader from "@/components/SectionHeader";
-import { prisma } from "@/lib/prisma";
-import { ComicUI } from "@/lib/types";
-
-function toComicUI(c: any): ComicUI | null {
-  if (!c || typeof c.id !== "number") return null;
-
-  return {
-    id: c.id,
-    title: c.title ?? "Untitled",
-    synopsis: c.synopsis ?? "",
-    genres: c.genres ?? "",
-  };
-}
+import HomeBanner from "@/components/HomeBanner";
 
 export default async function HomePage() {
   const latest = await prisma.comic.findMany({
     orderBy: { updatedAt: "desc" },
-    take: 8,
+    take: 10, // <- LIMIT HOME
   });
 
   const popular = await prisma.comic.findMany({
-    where: { isPopular: true },
-    take: 8,
+    orderBy: { views: "desc" },
+    take: 10,
   });
 
-  const latestSafe = latest.map(toComicUI).filter(Boolean) as ComicUI[];
-
-  const popularSafe = popular.map(toComicUI).filter(Boolean) as ComicUI[];
-
   return (
-    <div className="space-y-10">
-      {/* 🔥 BANNER */}
-      <HomeBanner comics={latestSafe.slice(0, 4)} />
+    <div className="space-y-12">
+      
+      <HomeBanner comics={latest.map(toComicUI)} />
 
-      <SectionHeader title="Update" />
-      <ComicGrid comics={latestSafe} />
+      <SectionHeader title="Update Terbaru" href="/comics/latest" />
+      <ComicGrid comics={latest.map(toComicUI)} />
 
-      <SectionHeader title="Komik Populer" />
-      <ComicGrid comics={popularSafe} />
+      <SectionHeader title="Komik Populer" href="/comics/popular" />
+      <ComicGrid comics={popular.map(toComicUI)} />
     </div>
   );
 }
