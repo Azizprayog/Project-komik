@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Comic } from "@/lib/types";
 
-export default function ComicCard({ comic }: { comic: Comic }) {
+export default function ComicCard({ comic }: { comic?: Comic }) {
+  if (!comic || !comic.id) return null;
+
   return (
     <Link href={`/comic/${comic.id}`}>
       <div className="bg-slate-900 rounded-lg border border-slate-700 p-4 hover:scale-[1.02] transition">
@@ -13,8 +15,9 @@ export default function ComicCard({ comic }: { comic: Comic }) {
           {comic.title}
         </h3>
 
-        <p className="text-sm text-slate-400 line-clamp-1">{comic.genres}</p>
-        <p className="text-xs text-slate-500 mt-1"></p>
+        <p className="text-sm text-slate-400 line-clamp-1">
+          {comic.genres}
+        </p>
       </div>
     </Link>
   );

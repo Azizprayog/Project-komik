@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 type Comic = {
@@ -5,7 +7,6 @@ type Comic = {
   title: string;
   genres: string | null;
   synopsis: string | null;
-
 };
 
 export default function ComicHeader({ comic }: { comic: Comic }) {
@@ -27,8 +28,7 @@ export default function ComicHeader({ comic }: { comic: Comic }) {
         <div className="flex gap-3 pt-2">
           <a
             href={`/comic/${comic.id}/read`}
-            className="px-5 py-2 rounded-md bg-purple-600 hover:bg-purple-700 transition"
-          >
+            className="px-5 py-2 rounded-md bg-purple-600 hover:bg-purple-700 transition">
             Start Reading
           </a>
           <button className="px-5 py-2 rounded-md border border-zinc-600 text-zinc-300">
