@@ -20,7 +20,7 @@ export default async function HomePage() {
       
       <HomeBanner comics={latest.map(toComicUI)} />
 
-      <SectionHeader title="Update Terbaru" href="/comics/latest" />
+      <SectionHeader title="Update" href="/comics/latest" />
       <ComicGrid comics={latest.map(toComicUI)} />
 
       <SectionHeader title="Komik Populer" href="/comics/popular" />

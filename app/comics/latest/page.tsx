@@ -22,7 +22,7 @@ export default async function LatestPage({
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-6">
-      <SectionHeader title="Semua Update Terbaru" />
+      <SectionHeader title="All Update" />
 
       <ComicGrid comics={comics.map(toComicUI)} />
 
