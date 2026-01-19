@@ -35,8 +35,8 @@ export default function ComicHeader({ comic }: { comic: Comic }) {
             Bookmark
           </button>
         </div>
-
-        {/* ✅ SYNOPSIS PINDAH KE SINI */}
+        
+        {/* Synopsis */}
         <div className="pt-4">
           <h2 className="text-lg font-semibold mb-1">Synopsis</h2>
           <p className="text-zinc-300 leading-relaxed">
