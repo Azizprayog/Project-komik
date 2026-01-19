@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ComicUI } from "@/lib/types";
 
 export default function ComicCard({ comic }: { comic: ComicUI }) {
+  if (!comic?.id || typeof comic.id !== "number") return null;
+
   return (
     <Link href={`/comic/${comic.id}`}>
       <div className="bg-slate-900 rounded-lg border border-slate-700 p-4 hover:scale-[1.02] transition">
@@ -9,11 +11,9 @@ export default function ComicCard({ comic }: { comic: ComicUI }) {
           Cover
         </div>
 
-        <h3 className="font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap">
-          {comic.title}
-        </h3>
+        <h3 className="font-semibold text-white truncate">{comic.title}</h3>
 
-        <p className="text-sm text-slate-400 line-clamp-1">{comic.genres}</p>
+        <p className="text-sm text-slate-400 truncate">{comic.genres}</p>
       </div>
     </Link>
   );
