@@ -1,36 +1,43 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
 
 export default function Navbar() {
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!query.trim()) return;
-
-    router.push(`/search?q=${encodeURIComponent(query)}`);
-  }
-
   return (
-    <nav className="flex items-center justify-between px-6 py-4 bg-slate-950">
-      <h1 className="text-xl font-bold text-white">KomikKita</h1>
+    <nav className="w-full h-16 flex items-center justify-between px-8 bg-gradient-to-r from-black via-slate-900 to-black">
+      {/* LEFT */}
+      <Link href="/" className="text-xl font-bold text-white">
+        KomikKita
+      </Link>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <input
-          type="text"
-          placeholder="Cari komik..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-4 py-2 rounded bg-slate-800 text-white outline-none"
-        />
-      </form>
+      {/* CENTER */}
+      <input
+        type="text"
+        placeholder="Cari komik..."
+        className="w-[320px] px-4 py-2 rounded-md bg-slate-800 text-sm text-white placeholder-slate-400 focus:outline-none"
+      />
 
-      <div className="text-sm text-slate-300 space-x-4">
-        <a href="/">Home</a>
-        <a href="/bookmark">Bookmark</a>
+      {/* RIGHT */}
+      <div className="flex items-center gap-6 text-sm">
+        <Link
+          href="/"
+          className="text-slate-300 hover:text-white transition"
+        >
+          Home
+        </Link>
+
+        <Link
+          href="/bookmark"
+          className="text-slate-300 hover:text-white transition"
+        >
+          Bookmark
+        </Link>
+
+        {/* 🔥 LOGIN BUTTON */}
+        <Link
+          href="/login"
+          className="px-4 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 text-white transition font-medium"
+        >
+          Login
+        </Link>
       </div>
     </nav>
   );
