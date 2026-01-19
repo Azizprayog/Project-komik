@@ -9,13 +9,11 @@ export default function ComicCard({ comic }: { comic: ComicUI }) {
           Cover
         </div>
 
-        <h3 className="font-semibold text-white line-clamp-2">
+        <h3 className="font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap">
           {comic.title}
         </h3>
 
-        <p className="text-sm text-slate-400 line-clamp-1">
-          {comic.genres}
-        </p>
+        <p className="text-sm text-slate-400 line-clamp-1">{comic.genres}</p>
       </div>
     </Link>
   );
