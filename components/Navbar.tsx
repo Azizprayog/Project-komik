@@ -1,40 +1,56 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import clsx from "clsx";
+
+const navItems = [
+  { label: "Home", href: "/" },
+  { label: "Bookmark", href: "/bookmark" },
+];
 
 export default function Navbar() {
+  const pathname = usePathname();
+
   return (
-    <nav className="w-full h-16 flex items-center justify-between px-8 bg-gradient-to-r from-black via-slate-900 to-black">
-      {/* LEFT */}
+    <nav className="flex items-center justify-between px-8 py-4 bg-gradient-to-r from-black via-slate-900 to-black">
+      {/* LOGO */}
       <Link href="/" className="text-xl font-bold text-white">
         KomikKita
       </Link>
 
-      {/* CENTER */}
-      <input
-        type="text"
-        placeholder="Cari komik..."
-        className="w-[320px] px-4 py-2 rounded-md bg-slate-800 text-sm text-white placeholder-slate-400 focus:outline-none"
-      />
+      {/* NAV MENU */}
+      <div className="flex items-center gap-6">
+        {navItems.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            pathname.startsWith(item.href + "/");
 
-      {/* RIGHT */}
-      <div className="flex items-center gap-6 text-sm">
-        <Link
-          href="/"
-          className="text-slate-300 hover:text-white transition"
-        >
-          Home
-        </Link>
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                "relative text-sm transition",
+                isActive
+                  ? "text-purple-400"
+                  : "text-slate-300 hover:text-white"
+              )}
+            >
+              {item.label}
 
-        <Link
-          href="/bookmark"
-          className="text-slate-300 hover:text-white transition"
-        >
-          Bookmark
-        </Link>
+              {/* ACTIVE INDICATOR */}
+              {isActive && (
+                <span className="absolute -bottom-1 left-0 h-[2px] w-full bg-purple-500 rounded-full" />
+              )}
+            </Link>
+          );
+        })}
 
-        {/* 🔥 LOGIN BUTTON */}
+        {/* USER LOGIN (BUKAN ADMIN) */}
         <Link
           href="/login"
-          className="px-4 py-1.5 rounded-md bg-purple-600 hover:bg-purple-500 text-white transition font-medium"
+          className="ml-4 px-4 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-sm text-white transition"
         >
           Login
         </Link>
