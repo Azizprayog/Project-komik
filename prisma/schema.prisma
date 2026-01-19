@@ -1,0 +1,50 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Comic {
+  id        Int      @id @default(autoincrement())
+  title     String
+  synopsis  String?
+  genres    String?
+
+  views     Int      @default(0)
+  bookmarks Int      @default(0)
+
+  chapters  Chapter[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isPopular Boolean  @default(false)
+}
+
+model Chapter {
+  id        Int      @id @default(autoincrement())
+  number    Int
+  comicId   Int
+  createdAt DateTime @default(now())
+
+  comic Comic @relation(fields: [comicId], references: [id], onDelete: Cascade)
+
+  @@unique([comicId, number])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
