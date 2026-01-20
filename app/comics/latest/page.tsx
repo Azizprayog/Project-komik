@@ -2,15 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { toComicUI } from "@/lib/mapper";
 import ComicGrid from "@/components/ComicGrid";
 import SectionHeader from "@/components/SectionHeader";
+import Link from "next/link";
 
 const PER_PAGE = 10;
 
 export default async function LatestPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const page = Number(searchParams.page ?? 1);
+  // ⬇️ WAJIB di-await di Next 16
+  const params = await searchParams;
+
+  const page = Number(params.page ?? "1");
 
   const comics = await prisma.comic.findMany({
     orderBy: { updatedAt: "desc" },
@@ -19,20 +23,31 @@ export default async function LatestPage({
   });
 
   const total = await prisma.comic.count();
+  const comicUI = comics.map(toComicUI);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-6">
-      <SectionHeader title="All Update" />
+      <SectionHeader title="Semua Komik Terbaru" />
 
-      <ComicGrid comics={comics.map(toComicUI)} />
+      <ComicGrid comics={comicUI} />
 
-      {/* Pagination */}
-      <div className="flex justify-center gap-3">
+      <div className="flex justify-center gap-3 pt-6">
         {page > 1 && (
-          <a href={`/comics/latest?page=${page - 1}`}>Prev</a>
+          <Link
+            href={`/comics/latest?page=${page - 1}`}
+            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
+          >
+            Prev
+          </Link>
         )}
+
         {page * PER_PAGE < total && (
-          <a href={`/comics/latest?page=${page + 1}`}>Next</a>
+          <Link
+            href={`/comics/latest?page=${page + 1}`}
+            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
+          >
+            Next
+          </Link>
         )}
       </div>
     </div>
