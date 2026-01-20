@@ -1,66 +1,115 @@
-export const dynamic = "force-dynamic";
+"use client";
 
-import { prisma } from "@/lib/prisma";
-import ComicHeader from "@/components/ComicHeader";
-import ChapterSection from "@/components/ChapterSection";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-const PER_PAGE = 20;
+export default function AdminEditComic() {
+  const params = useParams();
+  const id = params.id as string;
 
-export default async function ComicDetail({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ page?: string }>;
-}) {
-  // ✅ WAJIB unwrap Promise
-  const { id } = await params;
-  const { page } = await searchParams;
+  const [title, setTitle] = useState("");
+  const [synopsis, setSynopsis] = useState("");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const comicId = Number(id);
-  if (!id || Number.isNaN(comicId)) {
-    return (
-      <div className="text-center text-slate-400 py-20">
-        ID komik tidak valid
-      </div>
-    );
+  // 🔹 ambil data comic awal
+  useEffect(() => {
+    fetch(`/api/admin/comic/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTitle(data.title);
+        setSynopsis(data.synopsis ?? "");
+        setCoverUrl(data.coverUrl ?? null);
+      });
+  }, [id]);
+
+  // =========================
+  // ✏️ UPDATE JUDUL & SINOPSIS
+  // =========================
+  async function updateComic() {
+    setLoading(true);
+
+    await fetch(`/api/admin/comic/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, synopsis }),
+    });
+
+    setLoading(false);
+    alert("Judul & sinopsis berhasil diupdate");
   }
 
-  const currentPage = Number(page ?? 1);
+  // =========================
+  // 🖼️ UPLOAD / GANTI COVER
+  // =========================
+  async function uploadCover(file: File) {
+    const formData = new FormData();
+    formData.append("cover", file);
 
-  const comic = await prisma.comic.findUnique({
-    where: { id: comicId },
-  });
+    const res = await fetch(`/api/admin/comic/${id}/cover`, {
+      method: "POST",
+      body: formData,
+    });
 
-  if (!comic) {
-    return (
-      <div className="text-center text-slate-400 py-20">
-        Komik tidak ditemukan
-      </div>
-    );
+    const data = await res.json();
+    setCoverUrl(data.coverUrl);
   }
-
-  const chapters = await prisma.chapter.findMany({
-    where: { comicId },
-    orderBy: { number: "desc" },
-    skip: (currentPage - 1) * PER_PAGE,
-    take: PER_PAGE,
-  });
-
-  const totalChapter = await prisma.chapter.count({
-    where: { comicId },
-  });
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-      <ComicHeader comic={comic} />
+    <div className="max-w-3xl mx-auto px-6 py-10 space-y-6">
+      <h1 className="text-2xl font-bold">Edit Komik</h1>
 
-      <ChapterSection
-        comicId={comicId}
-        chapters={chapters}
-        page={currentPage}
-        totalPage={Math.ceil(totalChapter / PER_PAGE)}
-      />
+      {/* ===== COVER PREVIEW ===== */}
+      <div className="space-y-2">
+        <p className="font-semibold">Cover</p>
+
+        {coverUrl && (
+          <img
+            src={coverUrl}
+            alt="Cover"
+            className="w-40 rounded border"
+          />
+        )}
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            if (e.target.files?.[0]) {
+              uploadCover(e.target.files[0]);
+            }
+          }}
+        />
+      </div>
+
+      {/* ===== JUDUL ===== */}
+      <div className="space-y-2">
+        <p className="font-semibold">Judul</p>
+        <input
+          className="w-full border rounded px-3 py-2 bg-transparent"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+
+      {/* ===== SINOPSIS ===== */}
+      <div className="space-y-2">
+        <p className="font-semibold">Sinopsis</p>
+        <textarea
+          className="w-full border rounded px-3 py-2 bg-transparent min-h-[120px]"
+          value={synopsis}
+          onChange={(e) => setSynopsis(e.target.value)}
+        />
+      </div>
+
+      {/* ===== SAVE ===== */}
+      <button
+        onClick={updateComic}
+        disabled={loading}
+        className="px-4 py-2 bg-purple-600 text-white rounded"
+      >
+        {loading ? "Menyimpan..." : "Simpan Perubahan"}
+      </button>
     </div>
   );
 }
