@@ -2,16 +2,18 @@ import Link from "next/link";
 
 type ChapterItemProps = {
   comicId: number;
-  number: number;
+  chapterNumber: number;
 };
 
-export default function ChapterItem({ comicId, number }: ChapterItemProps) {
+export default function ChapterItem({
+  comicId,
+  chapterNumber,
+}: ChapterItemProps) {
   return (
     <Link
-      href={`/comic/${comicId}/read/${number}`}
-      className="block rounded-lg border border-slate-700 px-4 py-3 hover:bg-slate-800 transition"
-      >
-      Chapter {number}
+      href={`/comic/${comicId}/read/${chapterNumber}`}
+      className="block rounded-lg bg-slate-800 px-4 py-2 text-center  text-sm hover:bg-purple-600 transition">
+      Chapter {chapterNumber}
     </Link>
   );
 }

@@ -37,8 +37,8 @@ export default function ChapterSection({
 
   return (
     <section className="space-y-6">
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
+      {/* ===== HEADER ===== */}
+      <div className="flex items-center justify-between gap-4">
         <h2 className="text-xl font-semibold">Chapters</h2>
 
         <input
@@ -46,24 +46,24 @@ export default function ChapterSection({
           placeholder="Cari chapter..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="rounded-md bg-slate-800 px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+          className="rounded-md bg-slate-800 px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-purple-500 w-36"
         />
       </div>
 
-      {/* CHAPTER LIST */}
+      {/* ===== CHAPTER LIST ===== */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {(isSearching ? filtered : chapters).map((c) => (
           <ChapterItem
             key={c.id}
             comicId={comicId}
-            number={c.number}
+            chapterNumber={c.number}
           />
         ))}
       </div>
 
-      {/* PAGINATION */}
-      {!isSearching && (
-        <div className="flex justify-center gap-2 pt-6">
+      {/* ===== PAGINATION ===== */}
+      {!isSearching && totalPage > 1 && (
+        <div className="flex justify-center gap-2 pt-6 flex-wrap">
           {Array.from({ length: totalPage }).map((_, i) => {
             const p = i + 1;
 
