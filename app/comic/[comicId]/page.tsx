@@ -10,18 +10,17 @@ export default async function ComicDetail({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ comicId: string }>;
   searchParams: Promise<{ page?: string }>;
 }) {
-  // ✅ WAJIB UNWRAP PROMISE
-  const { id } = await params;
+  const { comicId } = await params;
   const { page } = await searchParams;
 
-  const comicId = Number(id);
+  const id = Number(comicId);
 
-  if (!id || Number.isNaN(comicId)) {
+  if (Number.isNaN(id)) {
     return (
-      <div className="text-center text-slate-400 py-20">
+      <div className="text-center py-20 text-slate-400">
         ID komik tidak valid
       </div>
     );
@@ -30,26 +29,26 @@ export default async function ComicDetail({
   const currentPage = Number(page ?? 1);
 
   const comic = await prisma.comic.findUnique({
-    where: { id: comicId },
+    where: { id },
   });
 
   if (!comic) {
     return (
-      <div className="text-center text-slate-400 py-20">
+      <div className="text-center py-20 text-slate-400">
         Komik tidak ditemukan
       </div>
     );
   }
 
   const chapters = await prisma.chapter.findMany({
-    where: { comicId },
+    where: { comicId: id },
     orderBy: { number: "desc" },
     skip: (currentPage - 1) * PER_PAGE,
     take: PER_PAGE,
   });
 
   const totalChapter = await prisma.chapter.count({
-    where: { comicId },
+    where: { comicId: id },
   });
 
   return (
@@ -57,7 +56,7 @@ export default async function ComicDetail({
       <ComicHeader comic={comic} />
 
       <ChapterSection
-        comicId={comicId}
+        comicId={id}
         chapters={chapters}
         page={currentPage}
         totalPage={Math.ceil(totalChapter / PER_PAGE)}

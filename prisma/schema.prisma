@@ -1,6 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -28,8 +27,19 @@ model Chapter {
   comicId   Int
   createdAt DateTime @default(now())
   comic     Comic    @relation(fields: [comicId], references: [id], onDelete: Cascade)
+  pages     Page[]
 
   @@unique([comicId, number])
+}
+
+model Page {
+  id        Int     @id @default(autoincrement())
+  imageUrl  String
+  order     Int
+  chapterId Int
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([chapterId, order])
 }
 
 model User {

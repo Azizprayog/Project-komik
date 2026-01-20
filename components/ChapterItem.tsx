@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type ChapterItemProps = {
+type Props = {
   comicId: number;
   chapterNumber: number;
 };
@@ -8,11 +8,12 @@ type ChapterItemProps = {
 export default function ChapterItem({
   comicId,
   chapterNumber,
-}: ChapterItemProps) {
+}: Props) {
   return (
     <Link
       href={`/comic/${comicId}/read/${chapterNumber}`}
-      className="block rounded-lg bg-slate-800 px-4 py-2 text-center  text-sm hover:bg-purple-600 transition">
+      className="block rounded-lg bg-slate-800 px-4 py-2 text-center hover:bg-purple-600 transition"
+    >
       Chapter {chapterNumber}
     </Link>
   );
