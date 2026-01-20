@@ -1,37 +1,31 @@
 import { prisma } from "@/lib/prisma";
 
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const comicId = Number(searchParams.get("comicId"));
+
+  const chapters = await prisma.chapter.findMany({
+    where: { comicId },
+    orderBy: { number: "asc" },
+  });
+
+  return Response.json(chapters);
+}
+
 export async function POST(req: Request) {
-  try {
-    const { comicId, number } = await req.json();
+  const { comicId, number } = await req.json();
 
-    if (!comicId || !number) {
-      return new Response(
-        JSON.stringify({ error: "comicId dan number wajib diisi" }),
-        { status: 400 }
-      );
-    }
+  const exists = await prisma.chapter.findFirst({
+    where: { comicId, number },
+  });
 
-    await prisma.chapter.create({
-      data: {
-        comicId: Number(comicId),
-        number: Number(number),
-      },
-    });
-
-    return Response.json({ success: true });
-  } catch (error: any) {
-    // kalau chapter dobel
-    if (error.code === "P2002") {
-      return new Response(
-        JSON.stringify({ error: "Chapter sudah ada" }),
-        { status: 409 }
-      );
-    }
-
-    console.error(error);
-    return new Response(
-      JSON.stringify({ error: "Server error" }),
-      { status: 500 }
-    );
+  if (exists) {
+    return Response.json({ error: "Duplicate" }, { status: 400 });
   }
+
+  const chapter = await prisma.chapter.create({
+    data: { comicId, number },
+  });
+
+  return Response.json(chapter);
 }

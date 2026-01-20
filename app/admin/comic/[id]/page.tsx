@@ -3,113 +3,212 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-export default function AdminEditComic() {
-  const params = useParams();
-  const id = params.id as string;
+type Chapter = {
+  id: number;
+  number: number;
+};
+
+export default function AdminComicPage() {
+  const { id } = useParams<{ id: string }>();
 
   const [title, setTitle] = useState("");
   const [synopsis, setSynopsis] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
-  // 🔹 ambil data comic awal
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [chapterNumber, setChapterNumber] = useState("");
+
+  /* =========================
+     FETCH COMIC + CHAPTER
+  ========================= */
   useEffect(() => {
     fetch(`/api/admin/comic/${id}`)
-      .then((res) => res.json())
+      .then((r) => r.json())
       .then((data) => {
         setTitle(data.title);
         setSynopsis(data.synopsis ?? "");
         setCoverUrl(data.coverUrl ?? null);
       });
+
+    fetch(`/api/admin/chapter?comicId=${id}`)
+      .then((r) => r.json())
+      .then(setChapters);
   }, [id]);
 
-  // =========================
-  // ✏️ UPDATE JUDUL & SINOPSIS
-  // =========================
+  /* =========================
+     UPDATE TEXT
+  ========================= */
   async function updateComic() {
-    setLoading(true);
-
     await fetch(`/api/admin/comic/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, synopsis }),
     });
 
-    setLoading(false);
-    alert("Judul & sinopsis berhasil diupdate");
+    alert("Comic updated");
   }
 
-  // =========================
-  // 🖼️ UPLOAD / GANTI COVER
-  // =========================
+  /* =========================
+     UPLOAD COVER (REALTIME)
+  ========================= */
   async function uploadCover(file: File) {
-    const formData = new FormData();
-    formData.append("cover", file);
+    setCoverPreview(URL.createObjectURL(file));
+
+    const form = new FormData();
+    form.append("cover", file);
 
     const res = await fetch(`/api/admin/comic/${id}/cover`, {
       method: "POST",
-      body: formData,
+      body: form,
     });
 
     const data = await res.json();
     setCoverUrl(data.coverUrl);
   }
 
+  /* =========================
+     ADD CHAPTER (NO DUPLICATE)
+  ========================= */
+  async function addChapter() {
+    if (!chapterNumber) return;
+
+    const res = await fetch("/api/admin/chapter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        comicId: Number(id),
+        number: Number(chapterNumber),
+      }),
+    });
+
+    if (!res.ok) {
+      alert("Chapter sudah ada");
+      return;
+    }
+
+    const newChapter = await res.json();
+    setChapters((c) => [...c, newChapter]);
+    setChapterNumber("");
+  }
+
+  async function deleteChapter(chapterId: number) {
+    if (!confirm("Hapus chapter ini?")) return;
+
+    await fetch(`/api/admin/chapter/${chapterId}`, {
+      method: "DELETE",
+    });
+
+    setChapters((c) => c.filter((x) => x.id !== chapterId));
+  }
+
+  /* =========================
+     UI
+  ========================= */
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10 space-y-6">
-      <h1 className="text-2xl font-bold">Edit Komik</h1>
+    <div className="max-w-6xl mx-auto px-6 py-10">
+      <h1 className="text-2xl font-bold mb-6">Admin Comic Panel</h1>
 
-      {/* ===== COVER PREVIEW ===== */}
-      <div className="space-y-2">
-        <p className="font-semibold">Cover</p>
+      {/* ===== TOP SECTION ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* ===== COVER POSTER ===== */}
+        <div>
+          <div className="relative w-full aspect-[2/3] rounded-xl border border-slate-700 overflow-hidden bg-slate-900 flex items-center justify-center">
+            {coverPreview || coverUrl ? (
+              <img
+                src={coverPreview ?? coverUrl!}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-slate-400">No Cover</span>
+            )}
+          </div>
 
-        {coverUrl && (
-          <img
-            src={coverUrl}
-            alt="Cover"
-            className="w-40 rounded border"
+          {/* CHOOSE FILE */}
+          <label className="mt-3 block border border-dashed border-purple-500 rounded-lg p-3 text-center cursor-pointer hover:bg-purple-500/10">
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) =>
+                e.target.files && uploadCover(e.target.files[0])
+              }
+            />
+            <span className="text-purple-400 font-semibold">
+              Choose Cover Image
+            </span>
+          </label>
+        </div>
+
+        {/* ===== FORM ===== */}
+        <div className="md:col-span-2 space-y-4">
+          <div>
+            <label className="font-semibold">Judul</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full mt-1 px-4 py-2 bg-transparent border rounded"
+            />
+          </div>
+
+          <div>
+            <label className="font-semibold">Sinopsis</label>
+            <textarea
+              value={synopsis}
+              onChange={(e) => setSynopsis(e.target.value)}
+              className="w-full mt-1 px-4 py-2 bg-transparent border rounded min-h-[140px]"
+            />
+          </div>
+
+          <button
+            onClick={updateComic}
+            className="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded text-white font-semibold"
+          >
+            Simpan Perubahan
+          </button>
+        </div>
+      </div>
+
+      {/* ===== CHAPTER SECTION ===== */}
+      <div className="mt-12">
+        <h2 className="text-xl font-bold mb-4">Chapters</h2>
+
+        {/* ADD CHAPTER */}
+        <div className="flex gap-3 mb-6">
+          <input
+            placeholder="Chapter 1"
+            value={chapterNumber}
+            onChange={(e) => setChapterNumber(e.target.value)}
+            className="px-4 py-2 bg-transparent border rounded w-40"
           />
-        )}
+          <button
+            onClick={addChapter}
+            className="bg-purple-600 px-4 py-2 rounded text-white"
+          >
+            Tambah Chapter
+          </button>
+        </div>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            if (e.target.files?.[0]) {
-              uploadCover(e.target.files[0]);
-            }
-          }}
-        />
+        {/* LIST CHAPTER */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {chapters
+            .sort((a, b) => b.number - a.number)
+            .map((c) => (
+              <div
+                key={c.id}
+                className="border rounded-lg px-4 py-3 flex justify-between items-center"
+              >
+                <span>Chapter {c.number}</span>
+                <button
+                  onClick={() => deleteChapter(c.id)}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+        </div>
       </div>
-
-      {/* ===== JUDUL ===== */}
-      <div className="space-y-2">
-        <p className="font-semibold">Judul</p>
-        <input
-          className="w-full border rounded px-3 py-2 bg-transparent"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </div>
-
-      {/* ===== SINOPSIS ===== */}
-      <div className="space-y-2">
-        <p className="font-semibold">Sinopsis</p>
-        <textarea
-          className="w-full border rounded px-3 py-2 bg-transparent min-h-[120px]"
-          value={synopsis}
-          onChange={(e) => setSynopsis(e.target.value)}
-        />
-      </div>
-
-      {/* ===== SAVE ===== */}
-      <button
-        onClick={updateComic}
-        disabled={loading}
-        className="px-4 py-2 bg-purple-600 text-white rounded"
-      >
-        {loading ? "Menyimpan..." : "Simpan Perubahan"}
-      </button>
     </div>
   );
 }
