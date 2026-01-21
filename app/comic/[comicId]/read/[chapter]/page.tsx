@@ -1,18 +1,12 @@
-export const dynamic = "force-dynamic";
-
 import { prisma } from "@/lib/prisma";
-
-type PageImage = {
-  id: number;
-  imageUrl: string;
-  order: number;
-};
+import ReaderUI from "./ReaderUI";
 
 export default async function ReadChapter({
   params,
 }: {
   params: Promise<{ comicId: string; chapter: string }>;
 }) {
+  // ✅ WAJIB
   const { comicId, chapter } = await params;
 
   const comicIdNum = Number(comicId);
@@ -20,7 +14,7 @@ export default async function ReadChapter({
 
   if (Number.isNaN(comicIdNum) || Number.isNaN(chapterNum)) {
     return (
-      <div className="text-center py-20 text-slate-400">
+      <div className="p-10 text-center text-red-400">
         Chapter tidak valid
       </div>
     );
@@ -32,34 +26,33 @@ export default async function ReadChapter({
       number: chapterNum,
     },
     include: {
-      pages: {
-        orderBy: { order: "asc" },
-      },
+      pages: { orderBy: { order: "asc" } },
+      comic: true,
     },
   });
 
   if (!chapterData) {
     return (
-      <div className="text-center py-20 text-slate-400">
+      <div className="p-10 text-center">
         Chapter tidak ditemukan
       </div>
     );
   }
 
-  return (
-    <div className="max-w-3xl mx-auto py-10 space-y-6">
-      <h1 className="text-xl font-bold">
-        Chapter {chapterNum}
-      </h1>
+  // 🔥 ambil semua chapter komik ini
+  const chapters = await prisma.chapter.findMany({
+    where: { comicId: comicIdNum },
+    select: { number: true },
+    orderBy: { number: "desc" }, // terbaru di atas (kayak shinigami)
+  });
 
-      {chapterData.pages.map((p: PageImage) => (
-        <img
-          key={p.id}
-          src={p.imageUrl}
-          alt={`Page ${p.order}`}
-          className="w-full rounded"
-        />
-      ))}
-    </div>
+  return (
+    <ReaderUI
+      comicId={comicIdNum}
+      chapterNum={chapterNum}
+      comicTitle={chapterData.comic.title}
+      pages={chapterData.pages}
+      chapters={chapters}
+    />
   );
 }
