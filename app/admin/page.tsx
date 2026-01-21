@@ -1,36 +1,52 @@
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+"use client";
 
-export default async function AdminPage() {
-  const comics = await prisma.comic.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+import { useState } from "react";
+
+export default function UploadCover({ comicId }: { comicId: number }) {
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPreview(URL.createObjectURL(file));
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("comicId", String(comicId));
+
+    const res = await fetch("/api/admin/upload-cover", {
+      method: "POST",
+      body: formData,
+    });
+
+    setLoading(false);
+    if (!res.ok) alert("Upload gagal");
+  }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin Panel</h1>
-
-        {/* ➕ TOMBOL TAMBAH COMIC */}
-        <Link
-          href="/admin/comic/new"
-          className="fixed bottom-8 right-8 bg-purple-600 hover:bg-purple-700 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-lg">
-          +
-        </Link>
+    <div className="space-y-3">
+      <div className="w-[240px] h-[340px] rounded-xl border border-white/10 flex items-center justify-center overflow-hidden bg-black">
+        {preview ? (
+          <img src={preview} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-slate-400 text-sm">No Cover</span>
+        )}
       </div>
 
-      {/* LIST COMIC */}
-      <div className="space-y-3">
-        {comics.map((comic) => (
-          <Link
-            key={comic.id}
-            href={`/admin/comic/${comic.id}`}
-            className="block border border-slate-700 rounded px-4 py-3 hover:bg-slate-800">
-            {comic.title}
-          </Link>
-        ))}
-      </div>
+      <label className="block">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleUpload}
+          hidden
+        />
+        <span className="inline-block px-4 py-2 rounded-lg border border-purple-500 text-purple-400 cursor-pointer hover:bg-purple-500/10">
+          {loading ? "Uploading..." : "Choose Cover Image"}
+        </span>
+      </label>
     </div>
   );
 }

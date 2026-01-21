@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  
 }
 
 model Comic {
@@ -13,6 +13,7 @@ model Comic {
   title     String
   synopsis  String?
   genres    String?
+  coverUrl  String?
   views     Int       @default(0)
   bookmarks Int       @default(0)
   createdAt DateTime  @default(now())
