@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import CoverCard from "./_components/CoverCard";
 
 type Chapter = {
   id: number;
@@ -23,6 +24,8 @@ export default function AdminComicPage() {
      FETCH COMIC + CHAPTER
   ========================= */
   useEffect(() => {
+    if (!id) return;
+
     fetch(`/api/admin/comic/${id}`)
       .then((r) => r.json())
       .then((data) => {
@@ -50,7 +53,7 @@ export default function AdminComicPage() {
   }
 
   /* =========================
-     UPLOAD COVER (REALTIME)
+     UPLOAD COVER
   ========================= */
   async function uploadCover(file: File) {
     setCoverPreview(URL.createObjectURL(file));
@@ -65,10 +68,11 @@ export default function AdminComicPage() {
 
     const data = await res.json();
     setCoverUrl(data.coverUrl);
+    setCoverPreview(null);
   }
 
   /* =========================
-     ADD CHAPTER (NO DUPLICATE)
+     ADD CHAPTER
   ========================= */
   async function addChapter() {
     if (!chapterNumber) return;
@@ -106,41 +110,19 @@ export default function AdminComicPage() {
      UI
   ========================= */
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <h1 className="text-2xl font-bold mb-6">Admin Comic Panel</h1>
+    <div className="max-w-6xl mx-auto px-6 py-10 space-y-12">
+      <h1 className="text-2xl font-bold">Admin Comic Panel</h1>
 
       {/* ===== TOP SECTION ===== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* ===== COVER POSTER ===== */}
-        <div>
-          <div className="relative w-full aspect-[2/3] rounded-xl border border-slate-700 overflow-hidden bg-slate-900 flex items-center justify-center">
-            {coverPreview || coverUrl ? (
-              <img
-                src={coverPreview ?? coverUrl!}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-slate-400">No Cover</span>
-            )}
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {/* COVER */}
+        <CoverCard
+          coverUrl={coverUrl}
+          previewUrl={coverPreview}
+          onPick={uploadCover}
+        />
 
-          {/* CHOOSE FILE */}
-          <label className="mt-3 block border border-dashed border-purple-500 rounded-lg p-3 text-center cursor-pointer hover:bg-purple-500/10">
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={(e) =>
-                e.target.files && uploadCover(e.target.files[0])
-              }
-            />
-            <span className="text-purple-400 font-semibold">
-              Choose Cover Image
-            </span>
-          </label>
-        </div>
-
-        {/* ===== FORM ===== */}
+        {/* FORM */}
         <div className="md:col-span-2 space-y-4">
           <div>
             <label className="font-semibold">Judul</label>
@@ -170,10 +152,9 @@ export default function AdminComicPage() {
       </div>
 
       {/* ===== CHAPTER SECTION ===== */}
-      <div className="mt-12">
+      <div>
         <h2 className="text-xl font-bold mb-4">Chapters</h2>
 
-        {/* ADD CHAPTER */}
         <div className="flex gap-3 mb-6">
           <input
             placeholder="Chapter 1"
@@ -189,7 +170,6 @@ export default function AdminComicPage() {
           </button>
         </div>
 
-        {/* LIST CHAPTER */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {chapters
             .sort((a, b) => b.number - a.number)
