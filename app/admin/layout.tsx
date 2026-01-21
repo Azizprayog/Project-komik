@@ -1,5 +1,3 @@
-import LogoutButton from "@/components/LogoutAdminButton";
-
 export default function AdminLayout({
   children,
 }: {
@@ -7,12 +5,18 @@ export default function AdminLayout({
 }) {
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">Admin Panel</h1>
-        <LogoutButton />
-      </header>
+      {/* HEADER */}
+      <div className="border-b border-white/10 px-6 py-4 flex justify-between">
+        <h1 className="font-bold">Admin Panel</h1>
+        <form action="/api/logout" method="post">
+          <button className="bg-red-600 px-4 py-1 rounded">
+            Logout
+          </button>
+        </form>
+      </div>
 
-      <main className="p-6">{children}</main>
+      {/* CONTENT */}
+      <div className="px-6 py-6">{children}</div>
     </div>
   );
 }

@@ -19,7 +19,7 @@ export default function NewComicPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/admin/comic", {
+    const res = await fetch("/api/admin/create_comic", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, synopsis, genres }),

@@ -1,31 +1,39 @@
 import { prisma } from "@/lib/prisma";
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const comicId = Number(searchParams.get("comicId"));
-
-  const chapters = await prisma.chapter.findMany({
-    where: { comicId },
-    orderBy: { number: "asc" },
-  });
-
-  return Response.json(chapters);
-}
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { comicId, number } = await req.json();
+  try {
+    const { comicId } = await req.json();
 
-  const exists = await prisma.chapter.findFirst({
-    where: { comicId, number },
-  });
+    if (!comicId) {
+      return NextResponse.json(
+        { error: "comicId wajib" },
+        { status: 400 }
+      );
+    }
 
-  if (exists) {
-    return Response.json({ error: "Duplicate" }, { status: 400 });
+    // 🔢 cari chapter terakhir
+    const lastChapter = await prisma.chapter.findFirst({
+      where: { comicId },
+      orderBy: { number: "desc" },
+    });
+
+    const nextNumber = lastChapter ? lastChapter.number + 1 : 1;
+
+    const chapter = await prisma.chapter.create({
+      data: {
+        comicId,
+        number: nextNumber,
+        title: `Chapter ${nextNumber}`,
+      },
+    });
+
+    return NextResponse.json({ success: true, chapter });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json(
+      { error: "Gagal membuat chapter" },
+      { status: 500 }
+    );
   }
-
-  const chapter = await prisma.chapter.create({
-    data: { comicId, number },
-  });
-
-  return Response.json(chapter);
 }

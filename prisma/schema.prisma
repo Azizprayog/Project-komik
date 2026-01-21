@@ -3,30 +3,34 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Comic {
   id        Int       @id @default(autoincrement())
+  number    Int
   title     String
   synopsis  String?
   genres    String?
   coverUrl  String?
   views     Int       @default(0)
   bookmarks Int       @default(0)
+  isPopular Boolean   @default(false)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  isPopular Boolean   @default(false)
+
   chapters  Chapter[]
 }
 
 model Chapter {
   id        Int      @id @default(autoincrement())
   number    Int
+  title     String      // ✅ WAJIB, SESUAI UI
   comicId   Int
   createdAt DateTime @default(now())
+
   comic     Comic    @relation(fields: [comicId], references: [id], onDelete: Cascade)
   pages     Page[]
 
@@ -38,6 +42,7 @@ model Page {
   imageUrl  String
   order     Int
   chapterId Int
+
   chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   @@unique([chapterId, order])
