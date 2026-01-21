@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import ChapterItem from "./ChapterItem";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 type Chapter = {
   id: number;
@@ -22,67 +21,75 @@ export default function ChapterSection({
   page,
   totalPage,
 }: Props) {
-  const [query, setQuery] = useState("");
-  const router = useRouter();
+  const [search, setSearch] = useState("");
 
-  const filtered = chapters.filter((c) =>
-    c.number.toString().includes(query)
-  );
+  /* =========================
+     🔎 SEARCH (EXACT MATCH)
+     ========================= */
+  const filteredChapters = useMemo(() => {
+    if (!search.trim()) return chapters;
 
-  const isSearching = query.trim().length > 0;
+    const num = Number(search.trim());
+    if (Number.isNaN(num)) return [];
 
-  const goToPage = (p: number) => {
-    router.replace(`/comic/${comicId}?page=${p}`);
-  };
+    return chapters.filter((c) => c.number === num);
+  }, [search, chapters]);
 
   return (
-    <section className="space-y-6">
-      {/* ===== HEADER ===== */}
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold">Chapters</h2>
-
+    <div className="space-y-6">
+      {/* SEARCH INPUT */}
+      <div className="flex justify-end">
         <input
           type="text"
-          placeholder="Cari chapter..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="rounded-md bg-slate-800 px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-purple-500 w-36"
+          placeholder="Search chapter..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-48 px-3 py-2 rounded bg-[#1c1c1c] text-sm outline-none"
         />
       </div>
 
-      {/* ===== CHAPTER LIST ===== */}
+      {/* CHAPTER LIST */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {(isSearching ? filtered : chapters).map((c) => (
-          <ChapterItem
-            key={c.id}
-            comicId={comicId}
-            chapterNumber={c.number}
-          />
+        {filteredChapters.map((chapter) => (
+          <Link
+            key={chapter.id}
+            href={`/comic/${comicId}/read/${chapter.number}`}
+            className="block text-center px-4 py-2 rounded bg-[#111] hover:bg-purple-600 transition">
+            Chapter {chapter.number}
+          </Link>
         ))}
+
+        {filteredChapters.length === 0 && (
+          <div className="col-span-full text-center text-slate-400 py-10">
+            Chapter tidak ditemukan
+          </div>
+        )}
       </div>
 
-      {/* ===== PAGINATION ===== */}
-      {!isSearching && totalPage > 1 && (
-        <div className="flex justify-center gap-2 pt-6 flex-wrap">
-          {Array.from({ length: totalPage }).map((_, i) => {
-            const p = i + 1;
+      {/* PAGINATION */}
+      {totalPage > 1 && (
+        <div className="flex justify-center gap-4 pt-6">
+          {page > 1 && (
+            <Link
+              href={`/comic/${comicId}?page=${page - 1}`}
+              className="px-4 py-2 rounded bg-[#1c1c1c]">
+              ← Prev
+            </Link>
+          )}
 
-            return (
-              <button
-                key={p}
-                onClick={() => goToPage(p)}
-                className={`px-3 py-1 rounded-md text-sm transition ${
-                  page === p
-                    ? "bg-purple-600 text-white"
-                    : "bg-slate-800 hover:bg-slate-700"
-                }`}
-              >
-                {p}
-              </button>
-            );
-          })}
+          <span className="px-4 py-2 text-sm text-slate-400">
+            Page {page} / {totalPage}
+          </span>
+
+          {page < totalPage && (
+            <Link
+              href={`/comic/${comicId}?page=${page + 1}`}
+              className="px-4 py-2 rounded bg-[#1c1c1c]">
+              Next →
+            </Link>
+          )}
         </div>
       )}
-    </section>
+    </div>
   );
 }

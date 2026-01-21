@@ -32,13 +32,25 @@ export default function ReaderUI({
   const [showChapterModal, setShowChapterModal] = useState(false);
   const [search, setSearch] = useState("");
 
+  /* =========================
+     🔎 SEARCH CHAPTER (SHINIGAMI STYLE)
+     - "1"  → Chapter 1
+     - "10" → Chapter 10
+     - TIDAK fuzzy (10 tidak muncul saat cari 1)
+  ========================== */
   const filteredChapters = useMemo(() => {
-    if (!search) return chapters;
-    return chapters.filter((c) =>
-      String(c.number).includes(search)
-    );
+    if (!search.trim()) return chapters;
+
+    const num = Number(search.trim());
+    if (Number.isNaN(num)) return [];
+
+    return chapters.filter((c) => c.number === num);
   }, [search, chapters]);
 
+  /* =========================
+     ⬅ ➡ PREV / NEXT CHAPTER
+     chapters diasumsikan DESC (10,9,8...)
+  ========================== */
   const currentIndex = chapters.findIndex(
     (c) => c.number === chapterNum
   );
@@ -57,13 +69,13 @@ export default function ReaderUI({
   return (
     <div className="relative min-h-screen bg-black text-white">
 
-      {/* CLICK TO HIDE */}
+      {/* CLICK TO TOGGLE UI */}
       <div
         className="fixed inset-0 z-10"
         onClick={() => setShowUI((v) => !v)}
       />
 
-      {/* TOP BAR */}
+      {/* ================= TOP BAR ================= */}
       {showUI && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-30">
           <div className="flex items-center gap-6 bg-black/80 backdrop-blur px-8 py-3 rounded-full max-w-[600px]">
@@ -78,17 +90,23 @@ export default function ReaderUI({
         </div>
       )}
 
-      {/* PAGES */}
+      {/* ================= PAGES ================= */}
       <div className="relative z-0 max-w-3xl mx-auto py-24 space-y-4">
         {pages.map((p) => (
-          <img key={p.id} src={p.imageUrl} className="w-full rounded" />
+          <img
+            key={p.id}
+            src={p.imageUrl}
+            alt=""
+            className="w-full rounded"
+          />
         ))}
       </div>
 
-      {/* BOTTOM BAR */}
+      {/* ================= BOTTOM BAR ================= */}
       {showUI && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
           <div className="flex items-center gap-10 bg-black/80 backdrop-blur px-10 py-4 rounded-full">
+
             {prevChapter && (
               <Link
                 href={`/comic/${comicId}/read/${prevChapter.number}`}
@@ -117,24 +135,24 @@ export default function ReaderUI({
         </div>
       )}
 
-      {/* CHAPTER MODAL */}
+      {/* ================= CHAPTER MODAL ================= */}
       {showChapterModal && (
         <div
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur flex justify-center items-center"
           onClick={() => setShowChapterModal(false)}
         >
           <div
-            className="bg-[#111] w-[90%] max-w-md rounded-xl p-5"
+            className="bg-[#111] w-[90%] max-w-sm rounded-xl p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between mb-4">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold">Search Chapter</h2>
               <button onClick={() => setShowChapterModal(false)}>×</button>
             </div>
 
             <input
-              className="w-full mb-4 px-4 py-2 rounded bg-[#222]"
-              placeholder="Search..."
+              className="w-full mb-4 px-4 py-2 rounded bg-[#222] outline-none"
+              placeholder="Type chapter number..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -154,25 +172,11 @@ export default function ReaderUI({
                   Chapter {c.number}
                 </Link>
               ))}
-            </div>
 
-            {/* UP / DOWN DI MODAL */}
-            <div className="flex justify-between mt-4 text-sm text-gray-300">
-              {chapters.at(-1) && (
-                <Link
-                  href={`/comic/${comicId}/read/${chapters.at(-1)!.number}`}
-                  onClick={() => setShowChapterModal(false)}
-                >
-                  ⬆ First
-                </Link>
-              )}
-              {chapters[0] && (
-                <Link
-                  href={`/comic/${comicId}/read/${chapters[0].number}`}
-                  onClick={() => setShowChapterModal(false)}
-                >
-                  ⬇ Last
-                </Link>
+              {filteredChapters.length === 0 && (
+                <div className="text-center text-sm text-gray-400 py-6">
+                  Chapter tidak ditemukan
+                </div>
               )}
             </div>
           </div>

@@ -6,13 +6,17 @@ export default async function ReadChapter({
 }: {
   params: Promise<{ comicId: string; chapter: string }>;
 }) {
-  // ✅ WAJIB
+  // ✅ WAJIB await
   const { comicId, chapter } = await params;
 
   const comicIdNum = Number(comicId);
-  const chapterNum = Number(chapter);
 
-  if (Number.isNaN(comicIdNum) || Number.isNaN(chapterNum)) {
+  // ✅ AMAN walau chapter undefined / "01" / "chapter-1"
+  const chapterNum = Number(
+    (chapter ?? "").toString().replace(/\D/g, "")
+  );
+
+  if (!comicIdNum || !chapterNum) {
     return (
       <div className="p-10 text-center text-red-400">
         Chapter tidak valid
@@ -33,17 +37,16 @@ export default async function ReadChapter({
 
   if (!chapterData) {
     return (
-      <div className="p-10 text-center">
-        Chapter tidak ditemukan
+      <div className="p-10 text-center text-gray-400">
+        Chapter {chapterNum} tidak ditemukan
       </div>
     );
   }
 
-  // 🔥 ambil semua chapter komik ini
   const chapters = await prisma.chapter.findMany({
     where: { comicId: comicIdNum },
     select: { number: true },
-    orderBy: { number: "desc" }, // terbaru di atas (kayak shinigami)
+    orderBy: { number: "desc" },
   });
 
   return (
