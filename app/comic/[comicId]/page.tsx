@@ -2,56 +2,135 @@ export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
 
+const PER_PAGE = 20;
+
 export default async function ComicDetailPage({
   params,
+  searchParams,
 }: {
-  params: { id: string };
+  params: Promise<{ comicId: string }>;
+  searchParams: Promise<{ page?: string; q?: string }>;
 }) {
-  const comicId = Number(params.id);
+  const { comicId } = await params;
+  const { page = "1", q = "" } = await searchParams;
+
+  const id = Number(comicId);
+  const currentPage = Number(page);
+
+  if (!id || Number.isNaN(id)) {
+    return <div className="text-center py-20">ID komik tidak valid</div>;
+  }
 
   const comic = await prisma.comic.findUnique({
-    where: { id: comicId },
-    include: {
-      chapters: {
-        orderBy: { number: "asc" }, // ✅ 1 → terakhir
-      },
-    },
+    where: { id },
   });
 
   if (!comic) return <div>Comic not found</div>;
 
+  const whereChapter = q
+    ? { comicId: id, number: Number(q) }
+    : { comicId: id };
+
+  const totalChapters = await prisma.chapter.count({
+    where: { comicId: id },
+  });
+
+  const chapters = await prisma.chapter.findMany({
+    where: whereChapter,
+    orderBy: { number: "asc" },
+    skip: q ? 0 : (currentPage - 1) * PER_PAGE,
+    take: q ? undefined : PER_PAGE,
+  });
+
+  const totalPages = Math.ceil(totalChapters / PER_PAGE);
+
   return (
-    <div className="max-w-5xl mx-auto p-6 flex gap-8">
-      <div className="w-[240px] h-[360px] bg-slate-800 rounded-xl overflow-hidden">
-        {comic.coverUrl ? (
-          <img
-            src={comic.coverUrl}
-            alt={comic.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <span className="text-slate-400">Cover</span>
-        )}
-      </div>
+    <div className="max-w-6xl mx-auto px-6 py-14">
+      <div className="flex gap-12">
+        {/* COVER */}
+        <div className="w-[300px] shrink-0">
+          <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-purple-500/30 shadow-[0_0_40px_-12px_rgba(168,85,247,0.45)]">
+            <img
+              src={comic.coverUrl || "/placeholder.png"}
+              alt={comic.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
 
-      <div className="flex-1">
-        <h1 className="text-3xl font-bold mb-2">{comic.title}</h1>
-        <p className="text-slate-400 mb-4">{comic.synopsis}</p>
+        {/* RIGHT PANEL */}
+        <div className="flex-1 space-y-5">
+          <h1 className="text-4xl font-bold">{comic.title}</h1>
 
-        <h2 className="font-semibold mb-2">
-          Chapters ({comic.chapters.length})
-        </h2>
+          <p className="text-slate-400 max-w-xl">
+            {comic.synopsis}
+          </p>
 
-        <div className="grid grid-cols-2 gap-2">
-          {comic.chapters.map((ch) => (
+          {/* ACTIONS */}
+          <div className="flex gap-3 pt-2 max-w-sm">
             <a
-              key={ch.id}
-              href={`/comic/${comic.id}/read/${ch.number}`}
-              className="px-4 py-2 rounded bg-slate-800 hover:bg-purple-600 transition"
+              href={`/comic/${id}/read/1`}
+              className="flex-1 text-center py-2 rounded-lg bg-purple-600 hover:bg-purple-500 font-medium"
             >
-              Chapter {ch.number}
+              ▶ Start Reading
             </a>
-          ))}
+
+            <button className="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700">
+              ⭐ Bookmark
+            </button>
+          </div>
+
+          {/* SEARCH */}
+          <form className="pt-4 max-w-sm">
+            <input
+              name="q"
+              defaultValue={q}
+              placeholder="Cari chapter..."
+              className="w-full px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 focus:outline-none focus:border-purple-500"
+            />
+          </form>
+
+          {/* CHAPTER LIST */}
+          <div className="pt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3 max-w-xl">
+              {chapters.map((ch) => (
+                <a
+                  key={ch.id}
+                  href={`/comic/${id}/read/${ch.number}`}
+                  className="px-4 py-2 rounded-lg bg-slate-800/80 border border-slate-700 hover:border-purple-500 hover:bg-purple-500/10 transition"
+                >
+                  Chapter {ch.number}
+                </a>
+              ))}
+            </div>
+
+            {/* PAGINATION */}
+            {!q && totalPages > 1 && (
+              <div className="flex gap-3 pt-4">
+                {currentPage > 1 && (
+                  <a
+                    href={`/comic/${id}?page=${currentPage - 1}`}
+                    className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700"
+                  >
+                    Prev
+                  </a>
+                )}
+
+                <span className="px-3 py-1 text-sm text-slate-400">
+                  Page {currentPage} / {totalPages}
+                </span>
+
+                {currentPage < totalPages && (
+                  <a
+                    href={`/comic/${id}?page=${currentPage + 1}`}
+                    className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700"
+                  >
+                    Next
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

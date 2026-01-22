@@ -20,6 +20,17 @@ export default async function LatestPage({
     orderBy: { updatedAt: "desc" },
     skip: (page - 1) * PER_PAGE,
     take: PER_PAGE,
+
+    include: {
+      chapters: {
+        orderBy: { number: "desc" },
+        take: 2,
+        select: {
+          id: true,
+          number: true,
+        },
+      },
+    },
   });
 
   const total = await prisma.comic.count();
@@ -35,8 +46,7 @@ export default async function LatestPage({
         {page > 1 && (
           <Link
             href={`/comics/latest?page=${page - 1}`}
-            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
-          >
+            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700">
             Prev
           </Link>
         )}
@@ -44,8 +54,7 @@ export default async function LatestPage({
         {page * PER_PAGE < total && (
           <Link
             href={`/comics/latest?page=${page + 1}`}
-            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
-          >
+            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700">
             Next
           </Link>
         )}

@@ -1,97 +1,51 @@
-"use client";
-
-import { useState } from "react";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import NewComicForm from "@/components/admin/NewComicForm";
 
 export default function NewComicPage() {
-  const [title, setTitle] = useState("");
-  const [synopsis, setSynopsis] = useState("");
-  const [genres, setGenres] = useState("");
-  const [loading, setLoading] = useState(false);
+  async function createComic(formData: FormData) {
+    "use server";
 
-  // 👇 STATE TOAST (BARU)
-  const [success, setSuccess] = useState(false);
+    const title = formData.get("title") as string;
+    const synopsis = formData.get("synopsis") as string;
+    const genres = formData.get("genres") as string;
 
-  async function submit() {
-    if (!title.trim()) {
-      alert("Judul wajib diisi");
-      return;
+    const cover = formData.get("cover") as File;
+
+    let coverUrl: string | null = null;
+
+    if (cover && cover.size > 0) {
+      const bytes = await cover.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      const filename = `${Date.now()}-${cover.name}`;
+      const path = `./public/uploads/${filename}`;
+
+      const fs = await import("fs/promises");
+      await fs.writeFile(path, buffer);
+
+      coverUrl = `/uploads/${filename}`;
     }
 
-    setLoading(true);
-
-    const res = await fetch("/api/admin/create_comic", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, synopsis, genres }),
+    await prisma.comic.create({
+      data: {
+        title,
+        synopsis,
+        genres,
+        coverUrl,
+      },
     });
 
-    setLoading(false);
-
-    if (!res.ok) {
-      alert("Gagal menambahkan comic");
-      return;
-    }
-
-    // ✅ TOAST MUNCUL
-    setSuccess(true);
-
-    // reset form (UI tetap sama)
-    setTitle("");
-    setSynopsis("");
-    setGenres("");
-
-    // ⏱️ toast auto hilang
-    setTimeout(() => {
-      setSuccess(false);
-    }, 2000);
+    redirect("/admin/comics");
   }
 
   return (
-    <>
-      {/* ================= TOAST (TIDAK UBAH UI FORM) ================= */}
-      {success && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="bg-green-600 text-white px-6 py-3 rounded shadow-lg animate-fade">
-            ✅ Comic berhasil ditambahkan
-          </div>
-        </div>
-      )}
-      {/* ============================================================= */}
+    <div className="max-w-5xl mx-auto px-6 py-14">
+      <div className="bg-slate-900/70 border border-slate-700/60 rounded-2xl p-8 shadow-xl">
+        <h1 className="text-2xl font-bold mb-8">Tambah Comic</h1>
 
-      {/* ================= UI ASLI (TIDAK DIUBAH) ================= */}
-      <div className="max-w-xl mx-auto space-y-4">
-        <h1 className="text-xl font-bold">Tambah Comic</h1>
-
-        <input
-          placeholder="Judul"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full border px-3 py-2"
-        />
-
-        <textarea
-          placeholder="Sinopsis"
-          value={synopsis}
-          onChange={(e) => setSynopsis(e.target.value)}
-          className="w-full border px-3 py-2"
-        />
-
-        <input
-          placeholder="Genre (Action, Fantasy)"
-          value={genres}
-          onChange={(e) => setGenres(e.target.value)}
-          className="w-full border px-3 py-2"
-        />
-
-        <button
-          onClick={submit}
-          disabled={loading}
-          className="bg-purple-600 text-white px-4 py-2 rounded"
-        >
-          {loading ? "Menyimpan..." : "Tambah Comic"}
-        </button>
+        <NewComicForm action={createComic} />
       </div>
-      {/* ============================================================= */}
-    </>
+    </div>
   );
 }
