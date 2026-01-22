@@ -5,20 +5,12 @@ export async function POST(req: Request) {
   try {
     const { comicId } = await req.json();
 
-    if (!comicId) {
-      return NextResponse.json(
-        { error: "comicId wajib" },
-        { status: 400 }
-      );
-    }
-
-    // 🔢 cari chapter terakhir
     const lastChapter = await prisma.chapter.findFirst({
       where: { comicId },
       orderBy: { number: "desc" },
     });
 
-    const nextNumber = lastChapter ? lastChapter.number + 1 : 1;
+    const nextNumber = (lastChapter?.number ?? 0) + 1;
 
     const chapter = await prisma.chapter.create({
       data: {
@@ -32,7 +24,7 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { error: "Gagal membuat chapter" },
+      { error: "Gagal tambah chapter" },
       { status: 500 }
     );
   }

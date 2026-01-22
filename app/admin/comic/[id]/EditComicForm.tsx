@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Chapter = {
   id: number;
@@ -17,11 +18,17 @@ type Comic = {
 };
 
 export default function EditComicForm({ comic }: { comic: Comic }) {
+  const router = useRouter();
+
   const [title, setTitle] = useState(comic.title);
   const [synopsis, setSynopsis] = useState(comic.synopsis ?? "");
   const [preview, setPreview] = useState<string | null>(comic.coverUrl);
 
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   /* ================= COVER ================= */
+
   async function uploadCover(file: File) {
     const form = new FormData();
     form.append("file", file);
@@ -31,19 +38,31 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
       method: "POST",
       body: form,
     });
+
+    router.refresh();
   }
 
+  /* ================= SAVE ================= */
+
   async function handleSave() {
-    await fetch(`/api/admin/create_comic/${comic.id}`, {
+    setSaving(true);
+    setSaved(false);
+
+    await fetch(`/api/admin/comic/${comic.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, synopsis }),
     });
 
-    alert("Comic updated");
+    setSaving(false);
+    setSaved(true);
+
+    setTimeout(() => setSaved(false), 2000);
+    router.refresh();
   }
 
   /* ================= CHAPTER ================= */
+
   async function handleAddChapter() {
     await fetch("/api/admin/chapter", {
       method: "POST",
@@ -51,30 +70,28 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
       body: JSON.stringify({ comicId: comic.id }),
     });
 
-    location.reload();
+    router.refresh();
   }
 
-  async function handleDeleteChapter(chapterId: number) {
+  async function handleDeleteChapter(id: number) {
     if (!confirm("Hapus chapter ini?")) return;
 
-    await fetch(`/api/admin/chapter/${chapterId}`, {
+    await fetch(`/api/admin/chapter/${id}`, {
       method: "DELETE",
     });
 
-    location.reload();
+    router.refresh();
   }
 
-  async function uploadChapterImage(chapterId: number, file: File) {
+  function handleUploadPages(chapterId: number, file: File) {
     const form = new FormData();
     form.append("file", file);
     form.append("chapterId", String(chapterId));
 
-    await fetch("/api/admin/page", {
+    fetch("/api/admin/page", {
       method: "POST",
       body: form,
-    });
-
-    alert("Image uploaded");
+    }).then(() => router.refresh());
   }
 
   return (
@@ -92,8 +109,8 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
         <label className="block">
           <input
             type="file"
-            accept="image/*"
             hidden
+            accept="image/*"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (!file) return;
@@ -101,9 +118,9 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
               uploadCover(file);
             }}
           />
-          <span className="block text-center px-4 py-2 rounded-lg border border-purple-500 text-purple-400 cursor-pointer hover:bg-purple-500/10">
+          <div className="cursor-pointer text-center px-4 py-2 rounded-lg border border-purple-500 text-purple-400 hover:bg-purple-500/10">
             Choose Cover Image
-          </span>
+          </div>
         </label>
       </div>
 
@@ -127,66 +144,71 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
           />
         </div>
 
+        {/* ================= BUTTON ================= */}
         <div className="flex gap-3">
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-purple-600 rounded-lg">
-            Save
+            disabled={saving}
+            className={`
+              px-4 py-2 rounded-lg transition-all duration-300
+              ${saving ? "bg-purple-400 opacity-60" : "bg-purple-600"}
+              ${saved ? "opacity-40" : ""}
+            `}
+          >
+            {saving ? "Saving..." : saved ? "Saved ✓" : "Save"}
           </button>
-          <button className="px-4 py-2 bg-red-600 rounded-lg">Delete</button>
+
+          <button className="px-4 py-2 bg-red-600 rounded-lg">
+            Delete
+          </button>
         </div>
 
         {/* ================= CHAPTER LIST ================= */}
         <div className="pt-6">
-          <h3 className="font-semibold mb-3">Chapters</h3>
+          <h3 className="font-semibold mb-2">Chapters</h3>
 
-          <div className="space-y-2 max-h-[420px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent">
-            {comic.chapters.map((ch) => {
-              const fileRef = useRef<HTMLInputElement>(null);
+          {/* SCROLL AREA */}
+          <div className="space-y-2 max-h-[420px] overflow-y-auto pr-2">
+            {comic.chapters.map((ch) => (
+              <div
+                key={ch.id}
+                className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg px-4 py-2"
+              >
+                <span>Chapter {ch.number}</span>
 
-              return (
-                <div
-                  key={ch.id}
-                  className=" flex items-center justify-between bg-slate-900 border border-slate-700 rounded-lg px-4 py-2">
-                  {/* TITLE */}
-                  <span className="text-slate-200 truncate">{ch.title}</span>
-
-                  {/* ACTION */}
-                  <div className="flex items-center gap-3">
-                    {/* UPLOAD BOX */}
-                    <button
-                      onClick={() => fileRef.current?.click()}
-                      className="px-3 py-1 text-sm rounded-md border border-purple-500 text-purple-400 hover:bg-purple-500/10 transition">
-                      Upload
-                    </button>
-
-                    {/* DELETE */}
-                    <button
-                      onClick={() => handleDeleteChapter(ch.id)}
-                      className=" text-red-400 hover:text-red-500 text-lg leading-none"
-                      title="Delete chapter">
-                      ✕
-                    </button>
-
+                <div className="flex items-center gap-3">
+                  {/* UPLOAD BOX */}
+                  <label className="cursor-pointer">
                     <input
-                      ref={fileRef}
                       type="file"
-                      accept="image/*"
                       hidden
+                      accept="image/*"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) uploadChapterImage(ch.id, file);
+                        if (file) handleUploadPages(ch.id, file);
                       }}
                     />
-                  </div>
+                    <div className="px-3 py-1 rounded-md border border-purple-500 text-purple-400 hover:bg-purple-500/10 text-sm">
+                      Upload
+                    </div>
+                  </label>
+
+                  {/* DELETE */}
+                  <button
+                    onClick={() => handleDeleteChapter(ch.id)}
+                    className="text-red-400 hover:text-red-500 text-lg"
+                  >
+                    ✕
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
           <button
             onClick={handleAddChapter}
-            className="mt-4 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10">
+            className="mt-3 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10"
+          >
             + Add Chapter
           </button>
         </div>

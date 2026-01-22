@@ -9,7 +9,6 @@ datasource db {
 
 model Comic {
   id        Int       @id @default(autoincrement())
-  number    Int
   title     String
   synopsis  String?
   genres    String?
@@ -27,7 +26,7 @@ model Comic {
 model Chapter {
   id        Int      @id @default(autoincrement())
   number    Int
-  title     String      // ✅ WAJIB, SESUAI UI
+  title     String
   comicId   Int
   createdAt DateTime @default(now())
 
