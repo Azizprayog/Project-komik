@@ -13,7 +13,7 @@ export default async function HomePage() {
     include: {
       chapters: {
         orderBy: { number: "desc" },
-        take: 2, // 🔥 CUMA 2 CHAPTER TERAKHIR
+        take: 2, // 🔥 cuma ambil 2
       },
     },
   });
