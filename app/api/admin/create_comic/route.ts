@@ -1,46 +1,29 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import path from "path";
+import fs from "fs";
 
 export async function POST(req: Request) {
-  try {
-    const { title, synopsis } = await req.json();
+  const form = await req.formData();
+  const file = form.get("file") as File;
+  const comicId = Number(form.get("comicId"));
 
-    if (!title) {
-      return NextResponse.json(
-        { error: "Title wajib diisi" },
-        { status: 400 }
-      );
-    }
-
-    const comic = await prisma.comic.create({
-      data: { title, synopsis },
-    });
-
-    return NextResponse.json({ success: true, comic });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Gagal membuat comic" },
-      { status: 500 }
-    );
+  if (!file || !comicId) {
+    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
-}
 
-export async function PUT(req: Request) {
-  try {
-    const { id, title, synopsis } = await req.json();
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
 
-    const comic = await prisma.comic.update({
-      where: { id },
-      data: { title, synopsis },
-    });
+  const fileName = `${Date.now()}-${file.name}`;
+  const uploadPath = path.join(process.cwd(), "public/uploads", fileName);
 
-    return NextResponse.json({ success: true, comic });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Gagal update comic" },
-      { status: 500 }
-    );
-  }
+  fs.writeFileSync(uploadPath, buffer);
+
+  await prisma.comic.update({
+    where: { id: comicId },
+    data: { coverUrl: `/uploads/${fileName}` }, // ✅ PATH BENAR
+  });
+
+  return NextResponse.json({ success: true });
 }

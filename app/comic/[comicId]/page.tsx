@@ -1,67 +1,59 @@
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
-import ComicHeader from "@/components/ComicHeader";
-import ChapterSection from "@/components/ChapterSection";
 
-const PER_PAGE = 20;
-
-export default async function ComicDetail({
+export default async function ComicDetailPage({
   params,
-  searchParams,
 }: {
-  params: Promise<{ comicId: string }>;
-  searchParams: Promise<{ page?: string }>;
+  params: { id: string };
 }) {
-  const { comicId } = await params;
-  const { page } = await searchParams;
-
-  const id = Number(comicId);
-
-  if (Number.isNaN(id)) {
-    return (
-      <div className="text-center py-20 text-slate-400">
-        ID komik tidak valid
-      </div>
-    );
-  }
-
-  const currentPage = Number(page ?? 1);
+  const comicId = Number(params.id);
 
   const comic = await prisma.comic.findUnique({
-    where: { id },
+    where: { id: comicId },
+    include: {
+      chapters: {
+        orderBy: { number: "asc" }, // ✅ 1 → terakhir
+      },
+    },
   });
 
-  if (!comic) {
-    return (
-      <div className="text-center py-20 text-slate-400">
-        Komik tidak ditemukan
-      </div>
-    );
-  }
-
-  const chapters = await prisma.chapter.findMany({
-    where: { comicId: id },
-    orderBy: { number: "desc" },
-    skip: (currentPage - 1) * PER_PAGE,
-    take: PER_PAGE,
-  });
-
-  const totalChapter = await prisma.chapter.count({
-    where: { comicId: id },
-  });
+  if (!comic) return <div>Comic not found</div>;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-      <ComicHeader comic={comic} />
+    <div className="max-w-5xl mx-auto p-6 flex gap-8">
+      <div className="w-[240px] h-[360px] bg-slate-800 rounded-xl overflow-hidden">
+        {comic.coverUrl ? (
+          <img
+            src={comic.coverUrl}
+            alt={comic.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="text-slate-400">Cover</span>
+        )}
+      </div>
 
-      <ChapterSection
-        comicId={id}
-        chapters={chapters}
-        page={currentPage}
-        totalPage={Math.ceil(totalChapter / PER_PAGE)}
-      />
+      <div className="flex-1">
+        <h1 className="text-3xl font-bold mb-2">{comic.title}</h1>
+        <p className="text-slate-400 mb-4">{comic.synopsis}</p>
+
+        <h2 className="font-semibold mb-2">
+          Chapters ({comic.chapters.length})
+        </h2>
+
+        <div className="grid grid-cols-2 gap-2">
+          {comic.chapters.map((ch) => (
+            <a
+              key={ch.id}
+              href={`/comic/${comic.id}/read/${ch.number}`}
+              className="px-4 py-2 rounded bg-slate-800 hover:bg-purple-600 transition"
+            >
+              Chapter {ch.number}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

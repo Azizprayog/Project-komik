@@ -31,37 +31,57 @@ export default function HomeBanner({ comics }: Props) {
   }, [total]);
 
   return (
-    <div className="relative h-[320px] rounded-xl overflow-hidden bg-gradient-to-br from-black via-slate-900 to-black">
-      <Link href={`/comic/${comic.id}`} className="block h-full">
+    <div
+      className="relative h-[320px] rounded-xl overflow-hidden"
+      style={{
+        backgroundImage: comic.coverUrl
+          ? `url(${comic.coverUrl})`
+          : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* overlay biar text kebaca */}
+      <div className="absolute inset-0 bg-black/60" />
+
+      <Link href={`/comic/${comic.id}`} className="relative z-10 block h-full">
         <div className="h-full px-10 py-8 flex flex-col justify-center max-w-2xl">
           <h2 className="text-3xl font-bold mb-2">{comic.title}</h2>
-          <p className="text-purple-400 text-sm mb-3">{comic.genres}</p>
-          <p className="text-slate-300 text-sm line-clamp-3">
-            {comic.synopsis}
-          </p>
+
+          {comic.genres && (
+            <p className="text-purple-400 text-sm mb-3">{comic.genres}</p>
+          )}
+
+          {comic.synopsis && (
+            <p className="text-slate-300 text-sm line-clamp-3">
+              {comic.synopsis}
+            </p>
+          )}
         </div>
       </Link>
 
       {/* controls */}
-      <div className="absolute bottom-6 right-8 flex items-center gap-3 bg-black/40 backdrop-blur px-3 py-1.5 rounded-full">
-        <button
-          onClick={prev}
-          className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-sm"
-        >
-          ‹
-        </button>
+      {total > 1 && (
+        <div className="absolute bottom-6 right-8 z-10 flex items-center gap-3 bg-black/40 backdrop-blur px-3 py-1.5 rounded-full">
+          <button
+            onClick={prev}
+            className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-sm"
+          >
+            ‹
+          </button>
 
-        <span className="text-xs text-slate-300">
-          {index + 1} / {total}
-        </span>
+          <span className="text-xs text-slate-300">
+            {index + 1} / {total}
+          </span>
 
-        <button
-          onClick={next}
-          className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-sm"
-        >
-          ›
-        </button>
-      </div>
+          <button
+            onClick={next}
+            className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-sm"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }
