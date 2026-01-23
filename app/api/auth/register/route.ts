@@ -12,11 +12,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const exist = await prisma.user.findUnique({
+  const exists = await prisma.user.findUnique({
     where: { email },
   });
 
-  if (exist) {
+  if (exists) {
     return NextResponse.json(
       { error: "Email already used" },
       { status: 409 }

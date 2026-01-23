@@ -1,101 +1,69 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
-    console.log({ email, password });
-    // nanti kita sambung ke API login
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (res.ok) {
+      window.location.href = "/";
+    } else {
+      alert("Login gagal");
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <form
+      onSubmit={handleLogin}
+      className="max-w-sm mx-auto mt-40 bg-slate-900 p-6 rounded-xl"
+    >
+      <h1 className="text-xl mb-4 text-center">Login</h1>
 
-      <div
-        className="
-          w-full max-w-md
-          bg-slate-900
-          border border-slate-700
-          rounded-xl
-          p-8
-          shadow-lg
-        "
-      >
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Login
-        </h1>
+      <input
+        type="email"
+        className="w-full mb-3 p-2 rounded bg-slate-800"
+        placeholder="Email"
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <input
+        type="password"
+        className="w-full mb-3 p-2 rounded bg-slate-800"
+        placeholder="Password"
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
-          {/* EMAIL */}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="
-              w-full px-4 py-2 rounded-lg
-              bg-slate-800
-              border border-slate-700
-              focus:outline-none
-              focus:border-purple-500
-            "
-          />
+      <button className="bg-purple-600 w-full py-2 rounded hover:bg-purple-700 transition">
+        Login
+      </button>
 
-          {/* PASSWORD */}
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="
-              w-full px-4 py-2 rounded-lg
-              bg-slate-800
-              border border-slate-700
-              focus:outline-none
-              focus:border-purple-500
-            "
-          />
+      {/* 🔗 EXTRA LINKS */}
+      <div className="mt-4 flex justify-between text-sm text-slate-400">
+        <Link
+          href="/forgot-password"
+          className="hover:text-purple-400"
+        >
+          Forgot password?
+        </Link>
 
-          {/* BUTTON */}
-          <button
-            type="submit"
-            className="
-              w-full py-2 rounded-lg
-              bg-purple-600
-              hover:bg-purple-500
-              transition
-              font-semibold
-            "
-          >
-            Login
-          </button>
-        </form>
-
-        {/* LINKS */}
-        <div className="flex justify-between text-sm mt-4">
-
-          <a
-            href="/forgot-password"
-            className="text-purple-400 hover:underline"
-          >
-            Forgot password?
-          </a>
-
-          <a
-            href="/register"
-            className="text-purple-400 hover:underline"
-          >
-            Register
-          </a>
-
-        </div>
+        <Link
+          href="/register"
+          className="hover:text-purple-400"
+        >
+          Register
+        </Link>
       </div>
-    </div>
+    </form>
   );
 }

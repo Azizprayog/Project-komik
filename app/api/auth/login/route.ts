@@ -38,12 +38,12 @@ export async function POST(req: Request) {
     role: user.role,
   });
 
-  // 🍪 SET COOKIE SESSION
+  // 🍪 session cookie
   res.cookies.set("session", String(user.id), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
+    secure: false,
     maxAge: 60 * 60 * 24 * 7,
   });
 

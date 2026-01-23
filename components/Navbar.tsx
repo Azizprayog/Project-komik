@@ -3,13 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
+import UserMenu from "./UserMenu";
 
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Bookmark", href: "/bookmark" },
 ];
 
-export default function Navbar() {
+export default function Navbar({
+  isLoggedIn,
+}: {
+  isLoggedIn: boolean;
+}) {
   const pathname = usePathname();
 
   return (
@@ -34,10 +39,10 @@ export default function Navbar() {
                 isActive
                   ? "text-purple-400"
                   : "text-slate-300 hover:text-white",
-              )}>
+              )}
+            >
               {item.label}
 
-              {/* ACTIVE INDICATOR */}
               {isActive && (
                 <span className="absolute -bottom-1 left-0 h-[2px] w-full bg-purple-500 rounded-full" />
               )}
@@ -45,12 +50,17 @@ export default function Navbar() {
           );
         })}
 
-        {/* USER LOGIN (BUKAN ADMIN) */}
-        <Link
-          href="/login"
-          className="ml-4 px-4 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-sm text-white transition">
-          Login
-        </Link>
+        {/* USER AREA */}
+        {isLoggedIn ? (
+          <UserMenu />
+        ) : (
+          <Link
+            href="/login"
+            className="ml-4 px-4 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-sm text-white transition"
+          >
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );

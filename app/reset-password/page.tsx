@@ -1,22 +1,36 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+export default function ResetPassword() {
+  const params = useSearchParams();
+  const token = params.get("token");
+
+  const [password, setPassword] = useState("");
+  const [done, setDone] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    await fetch("/api/auth/forgot-password", {
+    const res = await fetch("/api/auth/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({
+        token,
+        password,
+      }),
     });
 
-    setSent(true);
+    if (res.ok) setDone(true);
   }
+
+  if (!token)
+    return (
+      <p className="text-center mt-20">
+        Invalid token
+      </p>
+    );
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -25,26 +39,27 @@ export default function ForgotPassword() {
         className="bg-slate-900 p-6 rounded w-[360px]"
       >
         <h1 className="text-xl font-bold mb-4">
-          Forgot Password
+          Reset Password
         </h1>
 
-        {sent ? (
+        {done ? (
           <p className="text-green-400">
-            Check console for reset link 😉
+            Password updated. Login again.
           </p>
         ) : (
           <>
             <input
+              type="password"
               className="w-full mb-3 p-2 rounded bg-slate-800"
-              placeholder="Email"
-              value={email}
+              placeholder="New password"
+              value={password}
               onChange={(e) =>
-                setEmail(e.target.value)
+                setPassword(e.target.value)
               }
             />
 
             <button className="w-full bg-purple-600 py-2 rounded">
-              Send reset link
+              Reset password
             </button>
           </>
         )}
