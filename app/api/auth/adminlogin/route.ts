@@ -17,7 +17,6 @@ export async function POST(req: Request) {
   }
 
   const valid = await bcrypt.compare(password, user.password);
-
   if (!valid) {
     return NextResponse.json(
       { message: "Invalid credentials" },
@@ -29,8 +28,8 @@ export async function POST(req: Request) {
 
   res.cookies.set("admin_auth", "true", {
     httpOnly: true,
-    path: "/",
     secure: process.env.NODE_ENV === "production",
+    path: "/",
   });
 
   return res;
