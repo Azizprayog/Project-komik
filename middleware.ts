@@ -1,28 +1,26 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // hanya proteksi admin
-  if (pathname.startsWith("/admin")) {
-    // ❗ BIAR LOGIN ADMIN TIDAK KELOOP
-    if (pathname === "/admin/login") {
-      return NextResponse.next();
-    }
+  const session = req.cookies.get("session")?.value;
 
-    const isAdmin = req.cookies.get("admin_auth")?.value;
+  // 🔒 PROTECT ADMIN
+  if (pathname.startsWith("/admin") && !session) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 
-    if (!isAdmin) {
-      return NextResponse.redirect(
-        new URL("/admin/login", req.url)
-      );
-    }
+  // 🚫 SUDAH LOGIN TIDAK BOLEH KE LOGIN / REGISTER
+  if (
+    (pathname === "/login" || pathname === "/register") &&
+    session
+  ) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/login", "/register"],
 };
