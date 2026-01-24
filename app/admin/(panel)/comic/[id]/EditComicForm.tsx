@@ -26,6 +26,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   /* ================= COVER ================= */
 
@@ -62,39 +63,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
     setTimeout(() => setSaved(false), 2000);
     router.refresh();
   }
-
-  /* ================= DELETE COMIC ================= */
-
-  async function handleDeleteComic() {
-    console.log("DELETE CLICKED");
-
-    const ok = confirm(
-      "⚠️ Delete this comic?\n\nAll chapters & pages will be removed permanently.",
-    );
-
-    if (!ok) return;
-
-    try {
-      const res = await fetch(`/api/admin/comic/${comic.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      console.log("DELETE STATUS:", res.status);
-
-      if (res.ok) {
-        window.location.href = "/admin";
-      } else {
-        const data = await res.json();
-        console.log("DELETE ERROR:", data);
-        alert("❌ Failed to delete comic");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("❌ Server error");
-    }
-  }
-
+  
   /* ================= CHAPTER ================= */
 
   async function handleAddChapter() {
@@ -194,51 +163,6 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             {saving ? "Saving..." : saved ? "Saved ✓" : "Save"}
           </button>
 
-          <button
-            type="button"
-            onClick={async (e) => {
-              e.preventDefault(); // ⬅️ PENTING
-              e.stopPropagation();
-
-              console.log("DELETE CLICKED");
-
-              const ok = window.confirm(
-                "⚠️ Delete this comic?\n\nAll chapters & pages will be removed permanently.",
-              );
-
-              if (!ok) return;
-
-              try {
-                const res = await fetch(`/api/admin/comic/${comic.id}`, {
-                  method: "DELETE",
-                  credentials: "include",
-                });
-
-                console.log("DELETE STATUS:", res.status);
-
-                if (res.ok) {
-                  window.location.href = "/admin";
-                } else {
-                  const data = await res.json();
-                  console.log(data);
-                  alert("❌ Failed to delete comic");
-                }
-              } catch (err) {
-                console.error(err);
-                alert("❌ Server error");
-              }
-            }}
-            className="
-    px-5 py-2 rounded-lg font-semibold
-    bg-red-600 text-white
-    hover:bg-red-500
-    hover:shadow-[0_0_22px_rgba(239,68,68,0.6)]
-    hover:scale-[1.03]
-    active:scale-95
-    transition-all duration-200
-  ">
-            🗑 Delete Comic
-          </button>
         </div>
 
         {/* ================= CHAPTER LIST ================= */}

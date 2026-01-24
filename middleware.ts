@@ -6,6 +6,14 @@ export function middleware(req: NextRequest) {
   const session = req.cookies.get("session")?.value;
   const admin = req.cookies.get("admin_auth")?.value;
 
+  // 🔍 DEBUG LOG — TARUH DI SINI
+  console.log(
+    "MIDDLEWARE:",
+    pathname,
+    "ADMIN:",
+    admin
+  );
+
   // 🔒 PROTECT ADMIN PAGES (NOT API)
   if (
     pathname.startsWith("/admin") &&

@@ -5,13 +5,15 @@ import { NextResponse } from "next/server";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   try {
     const { title, synopsis } = await req.json();
 
     const comic = await prisma.comic.update({
-      where: { id: Number(params.id) },
+      where: { id: Number(id) },
       data: { title, synopsis },
     });
 
@@ -30,43 +32,34 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = Number(params.id);
+  const { id } = await params;
 
-  if (!id) {
-    return NextResponse.json(
-      { error: "Invalid ID" },
-      { status: 400 }
-    );
-  }
+  console.log("🔥 DELETE API HIT:", id);
 
   try {
-    // delete pages
     await prisma.page.deleteMany({
       where: {
         chapter: {
-          comicId: id,
+          comicId: Number(id),
         },
       },
     });
 
-    // delete chapters
     await prisma.chapter.deleteMany({
-      where: { comicId: id },
+      where: { comicId: Number(id) },
     });
 
-    // delete comic
     await prisma.comic.delete({
-      where: { id },
+      where: { id: Number(id) },
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("DELETE COMIC ERROR:", error);
-
+  } catch (err) {
+    console.error("❌ DELETE ERROR:", err);
     return NextResponse.json(
-      { error: "Gagal delete comic" },
+      { error: "Delete failed" },
       { status: 500 }
     );
   }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import EditComicForm from "./EditComicForm";
+import { redirect } from "next/navigation";
 
 export default async function AdminComicEditPage({
   params,
@@ -8,6 +9,10 @@ export default async function AdminComicEditPage({
 }) {
   const { id } = await params;
   const comicId = Number(id);
+
+  if (!comicId) {
+    redirect("/admin/comic");
+  }
 
   const comic = await prisma.comic.findUnique({
     where: { id: comicId },
@@ -18,13 +23,16 @@ export default async function AdminComicEditPage({
     },
   });
 
+  // ✅ kalau udah kehapus → balik ke list
   if (!comic) {
-    return <div>Comic not found</div>;
+    redirect("/admin/comic");
   }
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
-      <h1 className="text-2xl font-bold mb-6">Edit Comic: {comic.title}</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Edit Comic: {comic.title}
+      </h1>
 
       <EditComicForm comic={comic} />
     </div>
