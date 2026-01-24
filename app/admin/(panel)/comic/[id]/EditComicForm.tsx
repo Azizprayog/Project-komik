@@ -37,6 +37,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
     await fetch("/api/admin/upload-cover", {
       method: "POST",
       body: form,
+      credentials: "include",
     });
 
     router.refresh();
@@ -52,6 +53,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, synopsis }),
+      credentials: "include",
     });
 
     setSaving(false);
@@ -61,6 +63,38 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
     router.refresh();
   }
 
+  /* ================= DELETE COMIC ================= */
+
+  async function handleDeleteComic() {
+    console.log("DELETE CLICKED");
+
+    const ok = confirm(
+      "⚠️ Delete this comic?\n\nAll chapters & pages will be removed permanently.",
+    );
+
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`/api/admin/comic/${comic.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      console.log("DELETE STATUS:", res.status);
+
+      if (res.ok) {
+        window.location.href = "/admin";
+      } else {
+        const data = await res.json();
+        console.log("DELETE ERROR:", data);
+        alert("❌ Failed to delete comic");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Server error");
+    }
+  }
+
   /* ================= CHAPTER ================= */
 
   async function handleAddChapter() {
@@ -68,6 +102,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ comicId: comic.id }),
+      credentials: "include",
     });
 
     router.refresh();
@@ -78,6 +113,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
     await fetch(`/api/admin/chapter/${id}`, {
       method: "DELETE",
+      credentials: "include",
     });
 
     router.refresh();
@@ -91,6 +127,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
     fetch("/api/admin/page", {
       method: "POST",
       body: form,
+      credentials: "include",
     }).then(() => router.refresh());
   }
 
@@ -158,8 +195,14 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
           </button>
 
           <button
-            onClick={async () => {
-              const ok = confirm(
+            type="button"
+            onClick={async (e) => {
+              e.preventDefault(); // ⬅️ PENTING
+              e.stopPropagation();
+
+              console.log("DELETE CLICKED");
+
+              const ok = window.confirm(
                 "⚠️ Delete this comic?\n\nAll chapters & pages will be removed permanently.",
               );
 
@@ -168,25 +211,29 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
               try {
                 const res = await fetch(`/api/admin/comic/${comic.id}`, {
                   method: "DELETE",
+                  credentials: "include",
                 });
+
+                console.log("DELETE STATUS:", res.status);
 
                 if (res.ok) {
                   window.location.href = "/admin";
                 } else {
+                  const data = await res.json();
+                  console.log(data);
                   alert("❌ Failed to delete comic");
                 }
-              } catch {
+              } catch (err) {
+                console.error(err);
                 alert("❌ Server error");
               }
             }}
             className="
     px-5 py-2 rounded-lg font-semibold
     bg-red-600 text-white
-
     hover:bg-red-500
     hover:shadow-[0_0_22px_rgba(239,68,68,0.6)]
     hover:scale-[1.03]
-
     active:scale-95
     transition-all duration-200
   ">
@@ -198,7 +245,6 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
         <div className="pt-6">
           <h3 className="font-semibold mb-2">Chapters</h3>
 
-          {/* SCROLL AREA */}
           <div className="space-y-2 max-h-[420px] overflow-y-auto pr-2">
             {comic.chapters.map((ch) => (
               <div
@@ -207,7 +253,6 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
                 <span>Chapter {ch.number}</span>
 
                 <div className="flex items-center gap-3">
-                  {/* UPLOAD BOX */}
                   <label className="cursor-pointer">
                     <input
                       type="file"
@@ -223,7 +268,6 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
                     </div>
                   </label>
 
-                  {/* DELETE */}
                   <button
                     onClick={() => handleDeleteChapter(ch.id)}
                     className="text-red-400 hover:text-red-500 text-lg">
