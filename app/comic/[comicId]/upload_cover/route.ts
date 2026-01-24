@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     // ===============================
     // SETUP UPLOAD FOLDER
     // ===============================
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = path.join(process.cwd(), "public/cover");
 
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });

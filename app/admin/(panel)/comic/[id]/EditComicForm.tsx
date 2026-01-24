@@ -153,13 +153,44 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
               px-4 py-2 rounded-lg transition-all duration-300
               ${saving ? "bg-purple-400 opacity-60" : "bg-purple-600"}
               ${saved ? "opacity-40" : ""}
-            `}
-          >
+            `}>
             {saving ? "Saving..." : saved ? "Saved ✓" : "Save"}
           </button>
 
-          <button className="px-4 py-2 bg-red-600 rounded-lg">
-            Delete
+          <button
+            onClick={async () => {
+              const ok = confirm(
+                "⚠️ Delete this comic?\n\nAll chapters & pages will be removed permanently.",
+              );
+
+              if (!ok) return;
+
+              try {
+                const res = await fetch(`/api/admin/comic/${comic.id}`, {
+                  method: "DELETE",
+                });
+
+                if (res.ok) {
+                  window.location.href = "/admin";
+                } else {
+                  alert("❌ Failed to delete comic");
+                }
+              } catch {
+                alert("❌ Server error");
+              }
+            }}
+            className="
+    px-5 py-2 rounded-lg font-semibold
+    bg-red-600 text-white
+
+    hover:bg-red-500
+    hover:shadow-[0_0_22px_rgba(239,68,68,0.6)]
+    hover:scale-[1.03]
+
+    active:scale-95
+    transition-all duration-200
+  ">
+            🗑 Delete Comic
           </button>
         </div>
 
@@ -172,8 +203,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             {comic.chapters.map((ch) => (
               <div
                 key={ch.id}
-                className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg px-4 py-2"
-              >
+                className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg px-4 py-2">
                 <span>Chapter {ch.number}</span>
 
                 <div className="flex items-center gap-3">
@@ -196,8 +226,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
                   {/* DELETE */}
                   <button
                     onClick={() => handleDeleteChapter(ch.id)}
-                    className="text-red-400 hover:text-red-500 text-lg"
-                  >
+                    className="text-red-400 hover:text-red-500 text-lg">
                     ✕
                   </button>
                 </div>
@@ -207,8 +236,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
           <button
             onClick={handleAddChapter}
-            className="mt-3 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10"
-          >
+            className="mt-3 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10">
             + Add Chapter
           </button>
         </div>

@@ -21,6 +21,7 @@ model Comic {
   updatedAt DateTime  @updatedAt
 
   chapters  Chapter[]
+  bookmarkedBy Bookmark[]
 }
 
 model Chapter {
@@ -47,6 +48,20 @@ model Page {
   @@unique([chapterId, order])
 }
 
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+
+  userId    Int
+  comicId   Int
+
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comic Comic @relation(fields: [comicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, comicId])
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -57,6 +72,8 @@ model User {
 
   resetToken   String?
   resetExpires DateTime?
+  
+  bookmarks Bookmark[]
 }
 
 enum Role {

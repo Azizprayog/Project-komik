@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const buffer = Buffer.from(bytes);
 
   const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-  const uploadDir = path.join(process.cwd(), "public/uploads");
+  const uploadDir = path.join(process.cwd(), "public/cover");
   const filePath = path.join(uploadDir, fileName);
 
   await writeFile(filePath, buffer);

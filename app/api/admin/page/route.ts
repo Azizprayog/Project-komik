@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(bytes);
 
     const fileName = `${Date.now()}-${file.name}`;
-    const uploadPath = path.join(process.cwd(), "public/uploads", fileName);
+    const uploadPath = path.join(process.cwd(), "public/cover", fileName);
 
     fs.writeFileSync(uploadPath, buffer);
 

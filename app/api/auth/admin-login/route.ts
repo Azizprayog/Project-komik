@@ -17,6 +17,7 @@ export async function POST(req: Request) {
   }
 
   const valid = await bcrypt.compare(password, user.password);
+
   if (!valid) {
     return NextResponse.json(
       { message: "Invalid credentials" },
@@ -26,10 +27,13 @@ export async function POST(req: Request) {
 
   const res = NextResponse.json({ success: true });
 
-  res.cookies.set("admin_auth", "true", {
+  // 🍪 ADMIN COOKIE (KHUSUS /admin)
+  res.cookies.set("admin_auth", String(user.id), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    path: "/",
+    sameSite: "lax",
+    path: "/admin",
+    maxAge: 60 * 60 * 6,
   });
 
   return res;

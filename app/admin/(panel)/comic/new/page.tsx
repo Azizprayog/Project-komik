@@ -19,12 +19,12 @@ export default function NewComicPage() {
       const buffer = Buffer.from(bytes);
 
       const filename = `${Date.now()}-${cover.name}`;
-      const path = `./public/uploads/${filename}`;
+      const path = `./public/cover/${filename}`;
 
       const fs = await import("fs/promises");
       await fs.writeFile(path, buffer);
 
-      coverUrl = `/uploads/${filename}`;
+      coverUrl = `/cover/${filename}`;
     }
 
     await prisma.comic.create({
