@@ -1,15 +1,11 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
-
-  console.log("🔥 HIDE API HIT:", id);
-
-  const comicId = Number(id);
+  const comicId = Number(params.id);
 
   if (isNaN(comicId)) {
     return NextResponse.json(
@@ -30,7 +26,6 @@ export async function PATCH(
     );
   }
 
-  // ✅ INI YANG PENTING — DIBALIK
   const updated = await prisma.comic.update({
     where: { id: comicId },
     data: {

@@ -11,16 +11,21 @@ export default function AdminLoginPage() {
 
     const res = await fetch("/api/auth/admin-login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ email, password }),
     });
 
-    if (res.ok) {
-      window.location.href = "/admin";
-    } else {
+    if (!res.ok) {
       const data = await res.json();
       alert(data.message || "Login admin gagal");
+      return;
     }
+
+    // ✅ sukses → masuk admin
+    window.location.href = "/admin";
   }
 
   return (
@@ -53,7 +58,7 @@ export default function AdminLoginPage() {
 
         <button
           type="submit"
-          className="w-full py-2 bg-purple-600 rounded text-white hover:bg-purple-500 transition"
+          className="w-full py-2 bg-purple-600 rounded text-white"
         >
           Login
         </button>

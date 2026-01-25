@@ -16,14 +16,14 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
 
   async function toggleHide(e: React.MouseEvent) {
     e.preventDefault();
-    e.stopPropagation();
+    
 
     console.log("🔥 TOGGLE VISIBILITY:", comic.id);
 
     const ok = confirm(
       comic.isHidden
         ? `Publish comic "${comic.title}"?`
-        : `Hide comic "${comic.title}"?`
+        : `Hide comic "${comic.title}"?`,
     );
 
     if (!ok) return;
@@ -31,15 +31,16 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `/api/admin/comic/${comic.id}/hide`,
-        {
-          method: "PATCH",
-          credentials: "include",
-        }
-      );
+      const res = await fetch(`/api/admin/comic/${comic.id}/hide`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        cache: "no-store",
+      });
 
-      console.log("FETCH STATUS:", res.status);
+      console.log("PATCH RESULT:", res.status);
 
       if (!res.ok) {
         const t = await res.text();
@@ -59,7 +60,6 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
 
   return (
     <div className="relative group aspect-[2/3] rounded-xl overflow-hidden border border-slate-700">
-
       {/* 👁 / 🚫 BUTTON */}
       <button
         type="button"
@@ -75,8 +75,7 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
               ? "bg-orange-600 hover:bg-orange-700"
               : "bg-emerald-600 hover:bg-emerald-700"
           }
-        `}
-      >
+        `}>
         {loading ? "…" : comic.isHidden ? "🚫" : "👁"}
       </button>
 

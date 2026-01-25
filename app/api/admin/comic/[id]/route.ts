@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
 
   try {
     const { title, synopsis } = await req.json();
@@ -32,9 +32,9 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
 
   console.log("🔥 DELETE API HIT:", id);
 
@@ -48,23 +48,10 @@ export async function DELETE(
       );
     }
 
-    const comic = await prisma.comic.findUnique({
-      where: { id: comicId },
-    });
-
-    if (!comic) {
-      return NextResponse.json(
-        { error: "Comic not found" },
-        { status: 404 }
-      );
-    }
-
     await prisma.page.deleteMany({
       where: {
         chapter: {
-          is: {
-            comicId,
-          },
+          is: { comicId },
         },
       },
     });
@@ -73,7 +60,7 @@ export async function DELETE(
       where: { comicId },
     });
 
-    await prisma.comic.delete({
+    await prisma.comic.deleteMany({
       where: { id: comicId },
     });
 
