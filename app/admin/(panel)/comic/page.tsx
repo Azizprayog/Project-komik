@@ -8,6 +8,7 @@ export default async function AdminComicListPage() {
       id: true,
       title: true,
       coverUrl: true,
+      isHidden: true,
     },
   });
 

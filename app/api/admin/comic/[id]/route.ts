@@ -39,20 +39,42 @@ export async function DELETE(
   console.log("🔥 DELETE API HIT:", id);
 
   try {
+    const comicId = Number(id);
+
+    if (isNaN(comicId)) {
+      return NextResponse.json(
+        { error: "Invalid ID" },
+        { status: 400 }
+      );
+    }
+
+    const comic = await prisma.comic.findUnique({
+      where: { id: comicId },
+    });
+
+    if (!comic) {
+      return NextResponse.json(
+        { error: "Comic not found" },
+        { status: 404 }
+      );
+    }
+
     await prisma.page.deleteMany({
       where: {
         chapter: {
-          comicId: Number(id),
+          is: {
+            comicId,
+          },
         },
       },
     });
 
     await prisma.chapter.deleteMany({
-      where: { comicId: Number(id) },
+      where: { comicId },
     });
 
     await prisma.comic.delete({
-      where: { id: Number(id) },
+      where: { id: comicId },
     });
 
     return NextResponse.json({ success: true });

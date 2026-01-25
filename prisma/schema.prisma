@@ -13,6 +13,7 @@ model Comic {
   synopsis  String?
   genres    String?
   coverUrl  String?
+  isHidden   Boolean @default(false)
   views     Int       @default(0)
   bookmarks Int       @default(0)
   isPopular Boolean   @default(false)
