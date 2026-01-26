@@ -1,13 +1,9 @@
-import { Suspense } from "react";
 import ResetPasswordClient from "./ResetPasswordClient";
 
+// Paksa halaman ini jadi dynamic route
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const dynamicParams = true;
 
 export default function Page() {
-  return (
-    <Suspense fallback={<div className="text-center mt-20">Loading...</div>}>
-      <ResetPasswordClient />
-    </Suspense>
-  );
+  return <ResetPasswordClient />;
 }
