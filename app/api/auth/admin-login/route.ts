@@ -1,23 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  try {
+    const { email, password } = await req.json();
 
-  // 🔐 TEST ACCOUNT
-  if (email === "admin@test.com" && password === "123") {
-    const res = NextResponse.json({ success: true });
+    if (!email || !password) {
+      return NextResponse.json(
+        { message: "Missing credentials" },
+        { status: 400 }
+      );
+    }
 
-    // 🍪 SET COOKIE - INI YANG PENTING!
-    res.cookies.set("admin_auth", "true", {
-      httpOnly: true,
-      path: "/",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 hari
-      secure: process.env.NODE_ENV === "production",
+    // ===============================
+    // FIND USER
+    // ===============================
+    const user = await prisma.user.findUnique({
+      where: { email },
     });
 
-    // 🍪 OPTIONAL: Session cookie (jaga-jaga kalau butuh)
-    res.cookies.set("session", "true", {
+    if (!user) {
+      return NextResponse.json(
+        { message: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    // ===============================
+    // CHECK PASSWORD
+    // ===============================
+    const valid = await bcrypt.compare(password, user.password);
+
+    if (!valid) {
+      return NextResponse.json(
+        { message: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    // ===============================
+    // ONLY ADMIN ALLOWED
+    // ===============================
+    if (user.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Not authorized" },
+        { status: 403 }
+      );
+    }
+
+    // ===============================
+    // SET COOKIE
+    // ===============================
+    const res = NextResponse.json({ success: true });
+
+    res.cookies.set("admin_auth", "true", {
       httpOnly: true,
       path: "/",
       sameSite: "lax",
@@ -25,14 +62,23 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    console.log("✅ ADMIN LOGIN SUCCESS - Cookie set!");
+    res.cookies.set("session", String(user.id), {
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    console.log("✅ ADMIN LOGIN:", user.email);
 
     return res;
-  }
+  } catch (err) {
+    console.error("❌ ADMIN LOGIN ERROR:", err);
 
-  // ❌ INVALID CREDENTIALS
-  return NextResponse.json(
-    { message: "Invalid credentials" },
-    { status: 401 }
-  );
+    return NextResponse.json(
+      { message: "Server error" },
+      { status: 500 }
+    );
+  }
 }
