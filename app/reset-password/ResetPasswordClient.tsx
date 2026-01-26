@@ -16,10 +16,7 @@ export default function ResetPasswordClient() {
     const res = await fetch("/api/auth/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token,
-        password,
-      }),
+      body: JSON.stringify({ token, password }),
     });
 
     if (res.ok) setDone(true);
@@ -31,11 +28,14 @@ export default function ResetPasswordClient() {
     <div className="min-h-screen flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
-        className="bg-slate-900 p-6 rounded w-[360px]">
+        className="bg-slate-900 p-6 rounded w-[360px]"
+      >
         <h1 className="text-xl font-bold mb-4">Reset Password</h1>
 
         {done ? (
-          <p className="text-green-400">Password updated. Login again.</p>
+          <p className="text-green-400">
+            Password updated. Login again.
+          </p>
         ) : (
           <>
             <input
