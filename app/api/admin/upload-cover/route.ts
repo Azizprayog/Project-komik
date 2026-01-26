@@ -4,6 +4,8 @@ import fs from "fs";
 import path from "path";
 
 export async function POST(req: Request) {
+  console.log("🔥 UPLOAD COVER API HIT");
+
   try {
     const form = await req.formData();
 
@@ -11,46 +13,39 @@ export async function POST(req: Request) {
     const comicId = Number(form.get("comicId"));
 
     if (!file || !comicId) {
+      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    }
+
+    if (!file.type.startsWith("image/")) {
       return NextResponse.json(
-        { error: "Invalid data" },
+        { error: "File must be image" },
         { status: 400 }
       );
     }
 
-    // ===============================
-    // SETUP UPLOAD FOLDER
-    // ===============================
-    const uploadDir = path.join(process.cwd(), "public/cover");
+    // 📁 public/cover
+    const uploadDir = path.join(process.cwd(), "public", "cover");
+    fs.mkdirSync(uploadDir, { recursive: true });
 
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // ===============================
-    // SAVE FILE
-    // ===============================
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
     const ext = path.extname(file.name);
     const fileName = `comic-${comicId}-${Date.now()}${ext}`;
-    const filePath = path.join(uploadDir, fileName);
 
-    fs.writeFileSync(filePath, buffer);
+    fs.writeFileSync(path.join(uploadDir, fileName), buffer);
 
-    // ===============================
-    // UPDATE DB
-    // ===============================
+    const publicUrl = `/cover/${fileName}`;
+
     await prisma.comic.update({
       where: { id: comicId },
-      data: {
-        coverUrl: `/uploads/${fileName}`,
-      },
+      data: { coverUrl: publicUrl },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, coverUrl: publicUrl });
   } catch (err) {
-    console.error(err);
+    console.error("❌ UPLOAD COVER ERROR:", err);
+
     return NextResponse.json(
       { error: "Upload failed" },
       { status: 500 }

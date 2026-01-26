@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   await prisma.comic.update({
     where: { id: comicId },
-    data: { coverUrl: `/uploads/${fileName}` }, // ✅ PATH BENAR
+    data: { coverUrl: `/cover/${fileName}` }, // ✅ PATH BENAR
   });
 
   return NextResponse.json({ success: true });

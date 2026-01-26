@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
   await writeFile(filePath, buffer);
 
-  const coverUrl = `/uploads/${fileName}`;
+  const coverUrl = `/cover/${fileName}`;
 
   await prisma.comic.update({
     where: { id: comicId },

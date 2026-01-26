@@ -11,12 +11,12 @@ export default async function LatestPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  // ⬇️ WAJIB di-await di Next 16
   const params = await searchParams;
 
   const page = Number(params.page ?? "1");
 
   const comics = await prisma.comic.findMany({
+    where: { isHidden: false },
     orderBy: { updatedAt: "desc" },
     skip: (page - 1) * PER_PAGE,
     take: PER_PAGE,
@@ -33,7 +33,10 @@ export default async function LatestPage({
     },
   });
 
-  const total = await prisma.comic.count();
+  const total = await prisma.comic.count({
+    where: { isHidden: false },
+  });
+
   const comicUI = comics.map(toComicUI);
 
   return (
@@ -46,7 +49,8 @@ export default async function LatestPage({
         {page > 1 && (
           <Link
             href={`/comics/latest?page=${page - 1}`}
-            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700">
+            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
+          >
             Prev
           </Link>
         )}
@@ -54,7 +58,8 @@ export default async function LatestPage({
         {page * PER_PAGE < total && (
           <Link
             href={`/comics/latest?page=${page + 1}`}
-            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700">
+            className="px-4 py-2 bg-slate-800 rounded hover:bg-slate-700"
+          >
             Next
           </Link>
         )}

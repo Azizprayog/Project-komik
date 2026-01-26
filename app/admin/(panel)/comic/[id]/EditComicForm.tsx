@@ -22,26 +22,51 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
   const [title, setTitle] = useState(comic.title);
   const [synopsis, setSynopsis] = useState(comic.synopsis ?? "");
+
   const [preview, setPreview] = useState<string | null>(comic.coverUrl);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   /* ================= COVER ================= */
 
   async function uploadCover(file: File) {
+    const prev = preview;
+
+    // optimistic preview
+    const tempUrl = URL.createObjectURL(file);
+    setPreview(tempUrl);
+
     const form = new FormData();
     form.append("file", file);
     form.append("comicId", String(comic.id));
 
-    await fetch("/api/admin/upload-cover", {
-      method: "POST",
-      body: form,
-      credentials: "include",
-    });
+    try {
+      setUploadingCover(true);
 
-    router.refresh();
+      const res = await fetch("/api/admin/upload-cover", {
+        method: "POST",
+        body: form,
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+
+      // balikin preview lama
+      setPreview(prev);
+
+      alert("Upload cover gagal");
+    } finally {
+      setUploadingCover(false);
+    }
   }
 
   /* ================= SAVE ================= */
@@ -50,7 +75,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
     setSaving(true);
     setSaved(false);
 
-    await fetch(`/api/admin/comic/${comic.id}`, {
+    const res = await fetch(`/api/admin/comic/${comic.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, synopsis }),
@@ -58,12 +83,16 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
     });
 
     setSaving(false);
-    setSaved(true);
 
-    setTimeout(() => setSaved(false), 2000);
-    router.refresh();
+    if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      router.refresh();
+    } else {
+      alert("Gagal save comic");
+    }
   }
-  
+
   /* ================= CHAPTER ================= */
 
   async function handleAddChapter() {
@@ -103,12 +132,24 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {/* ================= COVER ================= */}
+
       <div className="space-y-3">
-        <div className="aspect-[2/3] rounded-xl overflow-hidden border border-slate-700 bg-slate-900 flex items-center justify-center">
+        <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-slate-700 bg-slate-900 flex items-center justify-center">
           {preview ? (
-            <img src={preview} className="w-full h-full object-cover" />
+            <img
+              src={preview}
+              className={`w-full h-full object-cover ${
+                uploadingCover ? "blur-sm opacity-70" : ""
+              }`}
+            />
           ) : (
             <span className="text-slate-400">No Cover</span>
+          )}
+
+          {uploadingCover && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-semibold">
+              Uploading...
+            </div>
           )}
         </div>
 
@@ -120,10 +161,11 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              setPreview(URL.createObjectURL(file));
+
               uploadCover(file);
             }}
           />
+
           <div className="cursor-pointer text-center px-4 py-2 rounded-lg border border-purple-500 text-purple-400 hover:bg-purple-500/10">
             Choose Cover Image
           </div>
@@ -131,6 +173,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
       </div>
 
       {/* ================= INFO ================= */}
+
       <div className="md:col-span-2 space-y-4">
         <div>
           <label className="text-sm text-slate-400">Title</label>
@@ -151,6 +194,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
         </div>
 
         {/* ================= BUTTON ================= */}
+
         <div className="flex gap-3">
           <button
             onClick={handleSave}
@@ -158,14 +202,13 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             className={`
               px-4 py-2 rounded-lg transition-all duration-300
               ${saving ? "bg-purple-400 opacity-60" : "bg-purple-600"}
-              ${saved ? "opacity-40" : ""}
             `}>
             {saving ? "Saving..." : saved ? "Saved ✓" : "Save"}
           </button>
-
         </div>
 
         {/* ================= CHAPTER LIST ================= */}
+
         <div className="pt-6">
           <h3 className="font-semibold mb-2">Chapters</h3>
 
@@ -187,6 +230,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
                         if (file) handleUploadPages(ch.id, file);
                       }}
                     />
+
                     <div className="px-3 py-1 rounded-md border border-purple-500 text-purple-400 hover:bg-purple-500/10 text-sm">
                       Upload
                     </div>
