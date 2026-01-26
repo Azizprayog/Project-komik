@@ -8,6 +8,7 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const file = form.get("file") as File;
     const chapterId = Number(form.get("chapterId"));
+    
 
     if (!file || !chapterId) {
       return NextResponse.json({ error: "File atau chapterId kosong" }, { status: 400 });
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
 
     const fileName = `${Date.now()}-${file.name}`;
     const uploadPath = path.join(process.cwd(), "public/cover", fileName);
-
+    
     fs.writeFileSync(uploadPath, buffer);
 
     // cari order terakhir

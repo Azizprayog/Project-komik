@@ -11,17 +11,17 @@ export function middleware(req: NextRequest) {
   // 🔒 PROTECT ADMIN API
   // ========================
   if (pathname.startsWith("/api/admin")) {
-    console.log("🔥 ADMIN API REQUEST");
-
-    if (!admin) {
-      console.log("⛔ BLOCKED ADMIN API");
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+  console.log("🔥 ADMIN API REQUEST:", pathname);
+  console.log("🍪 ADMIN VALUE:", admin);
+  if (!admin) {
+    console.log("⛔ BLOCKED ADMIN API");
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
   }
-
+  console.log("✅ ADMIN API ALLOWED"); // tambah ini!
+}
   // ========================
   // 🔒 PROTECT ADMIN PAGE
   // ========================

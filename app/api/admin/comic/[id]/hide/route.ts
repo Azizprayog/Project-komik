@@ -3,9 +3,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const comicId = Number(params.id);
+  // 🔥 AWAIT PARAMS!
+  const { id } = await context.params;
+  const comicId = Number(id);
 
   if (isNaN(comicId)) {
     return NextResponse.json(
