@@ -1,15 +1,21 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, useEffect } from "react";
 
-function ResetPasswordForm() {
-  const params = useSearchParams();
-  const token = params.get("token");
+export default function ResetPasswordClient() {
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Ambil token dari URL
+    const params = new URLSearchParams(window.location.search);
+    setToken(params.get("token"));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,6 +40,15 @@ function ResetPasswordForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Loading state sebelum component mount
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-center">Loading...</p>
+      </div>
+    );
   }
 
   if (!token) {
@@ -83,17 +98,5 @@ function ResetPasswordForm() {
         )}
       </form>
     </div>
-  );
-}
-
-export default function ResetPasswordClient() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-center">Loading...</p>
-      </div>
-    }>
-      <ResetPasswordForm />
-    </Suspense>
   );
 }
