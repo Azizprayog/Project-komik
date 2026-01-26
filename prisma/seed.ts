@@ -20,7 +20,6 @@ async function main() {
     },
     create: {
       email: adminEmail,
-      username: "admin",
       password: hashedPassword,
       role: "ADMIN",
     },
