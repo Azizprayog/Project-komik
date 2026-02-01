@@ -9,9 +9,12 @@ export default async function AdminComicListPage() {
     select: {
       id: true,
       title: true,
+      genre: true,
+      
       coverUrl: true,
       isHidden: true,
       isBanner: true,
+      isPopular: true,
     },
   });
 

@@ -49,7 +49,7 @@ export default function ComicActions({ comicId }: { comicId: number }) {
   }
 
   return (
-    <div className="flex gap-3 pt-2 max-w-sm">
+    <div className="flex flex-col sm:flex-row gap-3 pt-2 w-full max-w-sm">
       {/* START */}
       <button
         onClick={handleStartReading}

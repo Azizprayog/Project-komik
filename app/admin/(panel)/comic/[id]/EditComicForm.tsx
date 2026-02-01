@@ -12,15 +12,21 @@ type Chapter = {
 type Comic = {
   id: number;
   title: string;
+  genre: string | null;
   synopsis: string | null;
   coverUrl: string | null;
   chapters: Chapter[];
+
 };
 
 export default function EditComicForm({ comic }: { comic: Comic }) {
   const router = useRouter();
 
   const [title, setTitle] = useState(comic.title);
+
+  /* 🆕 GENRE */
+  const [genre, setGenre] = useState(comic.genre ?? "");
+
   const [synopsis, setSynopsis] = useState(comic.synopsis ?? "");
 
   const [preview, setPreview] = useState<string | null>(comic.coverUrl);
@@ -35,7 +41,6 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
   async function uploadCover(file: File) {
     const prev = preview;
 
-    // optimistic preview
     const tempUrl = URL.createObjectURL(file);
     setPreview(tempUrl);
 
@@ -52,17 +57,12 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
         credentials: "include",
       });
 
-      if (!res.ok) {
-        throw new Error("Upload failed");
-      }
+      if (!res.ok) throw new Error("Upload failed");
 
       router.refresh();
     } catch (err) {
       console.error(err);
-
-      // balikin preview lama
       setPreview(prev);
-
       alert("Upload cover gagal");
     } finally {
       setUploadingCover(false);
@@ -78,7 +78,13 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
     const res = await fetch(`/api/admin/comic/${comic.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, synopsis }),
+      body: JSON.stringify({
+        title,
+        synopsis,
+
+        /* 🆕 GENRE */
+        genre,
+      }),
       credentials: "include",
     });
 
@@ -175,6 +181,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
       {/* ================= INFO ================= */}
 
       <div className="md:col-span-2 space-y-4">
+        {/* TITLE */}
         <div>
           <label className="text-sm text-slate-400">Title</label>
           <input
@@ -184,6 +191,18 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
           />
         </div>
 
+        {/* 🆕 GENRE */}
+        <div>
+          <label className="text-sm text-slate-400">Genre</label>
+          <input
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            placeholder="Action, Fantasy, Romance..."
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2"
+          />
+        </div>
+
+        {/* SYNOPSIS */}
         <div>
           <label className="text-sm text-slate-400">Synopsis</label>
           <textarea
@@ -202,7 +221,8 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             className={`
               px-4 py-2 rounded-lg transition-all duration-300
               ${saving ? "bg-purple-400 opacity-60" : "bg-purple-600"}
-            `}>
+            `}
+          >
             {saving ? "Saving..." : saved ? "Saved ✓" : "Save"}
           </button>
         </div>
@@ -216,7 +236,8 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             {comic.chapters.map((ch) => (
               <div
                 key={ch.id}
-                className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg px-4 py-2">
+                className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg px-4 py-2"
+              >
                 <span>Chapter {ch.number}</span>
 
                 <div className="flex items-center gap-3">
@@ -238,7 +259,8 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
                   <button
                     onClick={() => handleDeleteChapter(ch.id)}
-                    className="text-red-400 hover:text-red-500 text-lg">
+                    className="text-red-400 hover:text-red-500 text-lg"
+                  >
                     ✕
                   </button>
                 </div>
@@ -248,7 +270,8 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
           <button
             onClick={handleAddChapter}
-            className="mt-3 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10">
+            className="mt-3 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10"
+          >
             + Add Chapter
           </button>
         </div>

@@ -12,8 +12,10 @@ type Comic = {
   id: number;
   title: string;
   coverUrl: string | null;
+  genre: string | null;
   isHidden: boolean;
   isBanner: boolean;
+  isPopular: boolean;
 };
 
 /* =======================
@@ -41,7 +43,7 @@ function ConfirmModal({
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-2xl bg-zinc-900 border border-zinc-700 shadow-xl p-6 animate-in fade-in zoom-in">
+      <div className="w-full max-w-sm rounded-2xl bg-zinc-900 border border-zinc-700 shadow-xl p-6">
         <h2 className="text-lg font-semibold text-white">{title}</h2>
 
         <p className="mt-2 text-sm text-zinc-400">{description}</p>
@@ -76,8 +78,11 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+
   const [isHidden, setIsHidden] = useState(comic.isHidden);
-  const [isBanner, setIsBanner] = useState(comic.isBanner); // ⭐
+  const [isBanner, setIsBanner] = useState(comic.isBanner);
+  const [isPopular, setIsPopular] = useState(comic.isPopular); // 🆕 ADD
+
   const [showConfirm, setShowConfirm] = useState(false);
 
   /* =======================
@@ -100,14 +105,12 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
     try {
       const res = await fetch(`/api/admin/comic/${comic.id}/hide`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
         cache: "no-store",
       });
 
       if (!res.ok) {
-        const t = await res.text();
-        alert(`❌ Failed: ${res.status} - ${t}`);
+        alert("❌ Failed toggle hide");
         return;
       }
 
@@ -125,7 +128,7 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
   }
 
   /* =======================
-     TOGGLE BANNER ⭐
+     TOGGLE BANNER
   ======================= */
 
   async function toggleBanner(e: React.MouseEvent) {
@@ -133,14 +136,11 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
     e.stopPropagation();
 
     try {
-      const res = await fetch(
-        `/api/admin/comic/${comic.id}/banner`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          cache: "no-store",
-        }
-      );
+      const res = await fetch(`/api/admin/comic/${comic.id}/banner`, {
+        method: "PATCH",
+        credentials: "include",
+        cache: "no-store",
+      });
 
       if (!res.ok) {
         alert("❌ Failed toggle banner");
@@ -150,6 +150,36 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
       const data = await res.json();
 
       setIsBanner(data.isBanner);
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Network error");
+    }
+  }
+
+  /* =======================
+     🔥 TOGGLE POPULAR (NEW)
+  ======================= */
+
+  async function togglePopular(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const res = await fetch(`/api/admin/comic/${comic.id}/popular`, {
+        method: "PATCH",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        alert("❌ Failed toggle popular");
+        return;
+      }
+
+      const data = await res.json();
+
+      setIsPopular(data.isPopular);
       router.refresh();
     } catch (err) {
       console.error(err);
@@ -170,7 +200,7 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
         ============================== */}
         <Link
           href={`/admin/comic/${comic.id}`}
-          className="absolute inset-0 z-20 cursor-pointer"
+          className="absolute inset-0 z-20"
         />
 
         {/* =============================
@@ -211,10 +241,30 @@ export default function AdminComicCard({ comic }: { comic: Comic }) {
                 ? "bg-orange-600 hover:bg-orange-700"
                 : "bg-emerald-600 hover:bg-emerald-700"
             }
-            ${loading ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >
           {loading ? "⏳" : isHidden ? "🚫" : "👁"}
+        </button>
+
+        {/* =============================
+            🔥 POPULAR ICON (BOTTOM RIGHT)
+        ============================== */}
+        <button
+          type="button"
+          onClick={togglePopular}
+          title={isPopular ? "Popular" : "Not Popular"}
+          className={`
+            absolute bottom-2 right-2 z-30
+            rounded-full w-9 h-9 flex items-center justify-center
+            text-white transition
+            ${
+              isPopular
+                ? "bg-pink-600 hover:bg-pink-700"
+                : "bg-zinc-700 hover:bg-zinc-600"
+            }
+          `}
+        >
+          🔥
         </button>
 
         {/* =============================

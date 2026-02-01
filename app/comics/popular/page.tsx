@@ -11,15 +11,17 @@ export default async function PopularPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  // ⬇️ wajib await di Next 16
   const params = await searchParams;
 
   const page = Number(params.page ?? "1");
 
   const comics = await prisma.comic.findMany({
-    where: { isHidden: false },
+    where: {
+      isHidden: false,
+      isPopular: true, // 🔥 INI YANG PENTING
+    },
 
-    orderBy: { views: "desc" },
+    orderBy: { updatedAt: "desc" },
 
     skip: (page - 1) * PER_PAGE,
     take: PER_PAGE,
@@ -37,7 +39,10 @@ export default async function PopularPage({
   });
 
   const total = await prisma.comic.count({
-    where: { isHidden: false },
+    where: {
+      isHidden: false,
+      isPopular: true, // 🔥 JUGA DISINI
+    },
   });
 
   const comicUI = comics.map(toComicUI);
@@ -48,7 +53,6 @@ export default async function PopularPage({
 
       <ComicGrid comics={comicUI} />
 
-      {/* PAGINATION */}
       <div className="flex justify-center gap-3 pt-6">
         {page > 1 && (
           <Link

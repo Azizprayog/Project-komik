@@ -76,7 +76,7 @@ export default function NewComicForm({
             Genre
           </label>
           <input
-            name="genres"
+            name="genre"
             placeholder="Action, Fantasy"
             className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-3 focus:ring-2 focus:ring-purple-500/60 outline-none"
           />

@@ -8,14 +8,14 @@ import HomeBanner from "@/components/HomeBanner";
 
 export default async function HomePage() {
 
-  // 🔥 BANNER KHUSUS
   const banners = await prisma.comic.findMany({
     where: {
       isHidden: false,
       isBanner: true,
+      isPopular: true,
     },
     orderBy: { updatedAt: "desc" },
-    take: 5, // bebas mau berapa banner tampil
+    take: 5,
     include: {
       chapters: {
         orderBy: { number: "desc" },
@@ -24,7 +24,6 @@ export default async function HomePage() {
     },
   });
 
-  // 🔵 LATEST
   const latest = await prisma.comic.findMany({
     where: { isHidden: false },
     orderBy: { updatedAt: "desc" },
@@ -37,10 +36,12 @@ export default async function HomePage() {
     },
   });
 
-  // 🟣 POPULAR
   const popular = await prisma.comic.findMany({
-    where: { isHidden: false },
-    orderBy: { views: "desc" },
+    where: {
+      isHidden: false,
+      isPopular: true,
+    },
+    orderBy: { updatedAt: "desc" },
     take: 10,
     include: {
       chapters: {
@@ -53,7 +54,6 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
 
-      {/* 🔥 PAKAI BANNER DARI DB */}
       {banners.length > 0 && (
         <HomeBanner comics={banners.map(toComicUI)} />
       )}

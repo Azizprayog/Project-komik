@@ -1,5 +1,5 @@
-import { ComicUI } from "./types";
 import { Comic } from "@prisma/client";
+import { ComicUI } from "./types";
 
 /**
  * ============================================
@@ -11,12 +11,19 @@ export type ComicDBWithLastChapters = {
   id: number;
   title: string;
   synopsis: string | null;
-  genres: string | null;
+  genre: string | null;
   coverUrl: string | null;
+
   views: number;
   bookmarks: number;
+
   createdAt: Date;
   updatedAt: Date;
+
+  isHidden: boolean;
+  isBanner: boolean;
+  isPopular: boolean;
+
   chapters: {
     id: number;
     number: number;
@@ -28,21 +35,26 @@ export type ComicDBWithLastChapters = {
  * 🔥 Mapper untuk Home / Update / Popular
  * ============================================
  */
-export function toComicUI(
-  comic: ComicDBWithLastChapters
-): ComicUI {
+export function toComicUI(comic: ComicDBWithLastChapters): ComicUI {
   return {
     id: comic.id,
     title: comic.title,
     synopsis: comic.synopsis,
-    genres: comic.genres,
+    genre: comic.genre,
     coverUrl: comic.coverUrl,
+
     views: comic.views,
     bookmarks: comic.bookmarks,
+
     createdAt: comic.createdAt,
     updatedAt: comic.updatedAt,
 
-    // 2 chapter terakhir (diasumsikan sudah order desc dari query)
+    // 🔥 STATUS FLAGS
+    isHidden: comic.isHidden,
+    isBanner: comic.isBanner,
+    isPopular: comic.isPopular,
+
+    // 2 chapter terakhir
     lastChapters: comic.chapters.map((ch) => ({
       id: ch.id,
       number: ch.number,
@@ -56,19 +68,24 @@ export function toComicUI(
  * (Latest / Search / Browse)
  * ============================================
  */
-export function toComicUISimple(
-  comic: Comic
-): ComicUI {
+export function toComicUISimple(comic: Comic): ComicUI {
   return {
     id: comic.id,
     title: comic.title,
     synopsis: comic.synopsis,
-    genres: comic.genres,
+    genre: comic.genre,
     coverUrl: comic.coverUrl,
+
     views: comic.views,
     bookmarks: comic.bookmarks,
+
     createdAt: comic.createdAt,
     updatedAt: comic.updatedAt,
+
+    // 🔥 STATUS FLAGS
+    isHidden: comic.isHidden,
+    isBanner: comic.isBanner,
+    isPopular: comic.isPopular,
 
     // list biasa tidak perlu chapter
     lastChapters: [],

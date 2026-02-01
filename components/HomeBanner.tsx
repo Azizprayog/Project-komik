@@ -31,8 +31,7 @@ export default function HomeBanner({ comics }: Props) {
   }, [total]);
 
   return (
-    <div
-      className="relative h-[320px] rounded-xl overflow-hidden"
+    <div className="relative h-[240px] sm:h-[320px] rounded-xl overflow-hidden"
       style={{
         backgroundImage: comic.coverUrl
           ? `url(${comic.coverUrl})`
@@ -45,11 +44,11 @@ export default function HomeBanner({ comics }: Props) {
       <div className="absolute inset-0 bg-black/60" />
 
       <Link href={`/comic/${comic.id}`} className="relative z-10 block h-full">
-        <div className="h-full px-10 py-8 flex flex-col justify-center max-w-2xl">
-          <h2 className="text-3xl font-bold mb-2">{comic.title}</h2>
+        <div className="h-full px-6 sm:px-10 py-6 flex flex-col justify-center max-w-xl">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-2">{comic.title}</h2>
 
-          {comic.genres && (
-            <p className="text-purple-400 text-sm mb-3">{comic.genres}</p>
+          {comic.genre && (
+            <p className="text-purple-400 text-sm mb-3">{comic.genre}</p>
           )}
 
           {comic.synopsis && (

@@ -8,7 +8,7 @@ export default function NewComicPage() {
 
     const title = formData.get("title") as string;
     const synopsis = formData.get("synopsis") as string;
-    const genres = formData.get("genres") as string;
+    const genre = formData.get("genre") as string;
 
     const cover = formData.get("cover") as File;
 
@@ -31,7 +31,7 @@ export default function NewComicPage() {
       data: {
         title,
         synopsis,
-        genres,
+        genre,
         coverUrl,
       },
     });

@@ -21,11 +21,11 @@ export async function PUT(
       );
     }
 
-    const { title, synopsis } = await req.json();
+    const { title, synopsis, genre } = await req.json();
 
     const comic = await prisma.comic.update({
       where: { id: comicId },
-      data: { title, synopsis },
+      data: { title, synopsis, genre },
     });
 
     return NextResponse.json({ success: true, comic });

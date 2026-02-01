@@ -38,13 +38,13 @@ export default function ChapterSection({
   return (
     <div className="space-y-6">
       {/* SEARCH INPUT */}
-      <div className="flex justify-end">
+      <div className="flex justify-center sm:justify-end">
         <input
           type="text"
           placeholder="Search chapter..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-48 px-3 py-2 rounded bg-[#1c1c1c] text-sm outline-none"
+          className="w-full max-w-xs px-3 py-2 ..."
         />
       </div>
 

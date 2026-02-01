@@ -6,7 +6,7 @@ CREATE TABLE "Comic" (
     "id" SERIAL NOT NULL,
     "title" TEXT,
     "synopsis" TEXT,
-    "genres" TEXT,
+    "genre" TEXT,
     "coverUrl" TEXT,
     "views" INTEGER NOT NULL DEFAULT 0,
     "bookmarks" INTEGER NOT NULL DEFAULT 0,

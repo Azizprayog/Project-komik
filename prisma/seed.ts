@@ -33,7 +33,7 @@ async function main() {
     data: {
       title: "Komik Contoh",
       synopsis: "Ini komik hasil seed",
-      genres: "Action, Fantasy",
+      genre: "Action, Fantasy",
       isPopular: true,
       isBanner: true,
     },

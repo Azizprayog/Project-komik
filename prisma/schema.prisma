@@ -8,31 +8,31 @@ datasource db {
 }
 
 model Comic {
-  id        Int       @id @default(autoincrement())
-  title     String
-  synopsis  String?
-  genres    String?
-  coverUrl  String?
-  views     Int       @default(0)
-  bookmarks Int       @default(0)
+  id           Int        @id @default(autoincrement())
+  title        String
+  synopsis     String?
+  genre        String?
+  coverUrl     String?
 
-  isPopular Boolean   @default(false)
-  isBanner  Boolean   @default(false)
-  isHidden   Boolean  @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  views        Int        @default(0)
+  bookmarks    Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  chapters  Chapter[]
+  isPopular    Boolean    @default(false)
+  isHidden     Boolean    @default(false)
+  isBanner     Boolean    @default(false)
+  
   bookmarkedBy Bookmark[]
+  chapters     Chapter[]
 }
 
 model Chapter {
   id        Int      @id @default(autoincrement())
   number    Int
-  title     String
   comicId   Int
   createdAt DateTime @default(now())
-
+  title     String
   comic     Comic    @relation(fields: [comicId], references: [id], onDelete: Cascade)
   pages     Page[]
 
@@ -44,7 +44,6 @@ model Page {
   imageUrl  String
   order     Int
   chapterId Int
-
   chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   @@unique([chapterId, order])
@@ -52,30 +51,25 @@ model Page {
 
 model Bookmark {
   id        Int      @id @default(autoincrement())
-
   userId    Int
   comicId   Int
-
   createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comic Comic @relation(fields: [comicId], references: [id], onDelete: Cascade)
+  comic     Comic    @relation(fields: [comicId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, comicId])
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-
-  resetToken   String?
+  id           Int        @id @default(autoincrement())
+  username     String?
+  password     String
+  role         Role       @default(USER)
+  createdAt    DateTime   @default(now())
+  email        String     @unique
   resetExpires DateTime?
-  
-  bookmarks Bookmark[]
+  resetToken   String?
+  bookmarks    Bookmark[]
 }
 
 enum Role {
