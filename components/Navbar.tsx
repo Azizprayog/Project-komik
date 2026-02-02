@@ -39,7 +39,7 @@ export default function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
       {/* LEFT */}
       <div className="flex justify-between items-center">
         <Link href="/" className="text-3xl font-bold text-white">
-          KomikKita
+          Fuzkomik
         </Link>
       </div>
 
