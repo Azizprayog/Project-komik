@@ -12,7 +12,7 @@ export default async function HomePage() {
     where: {
       isHidden: false,
       isBanner: true,
-      isPopular: true,
+
     },
     orderBy: { updatedAt: "desc" },
     take: 5,

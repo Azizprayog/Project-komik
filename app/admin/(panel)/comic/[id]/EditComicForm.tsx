@@ -16,24 +16,18 @@ type Comic = {
   synopsis: string | null;
   coverUrl: string | null;
   chapters: Chapter[];
-
 };
 
 export default function EditComicForm({ comic }: { comic: Comic }) {
   const router = useRouter();
 
   const [title, setTitle] = useState(comic.title);
-
-  /* 🆕 GENRE */
   const [genre, setGenre] = useState(comic.genre ?? "");
-
   const [synopsis, setSynopsis] = useState(comic.synopsis ?? "");
-
   const [preview, setPreview] = useState<string | null>(comic.coverUrl);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
   const [uploadingCover, setUploadingCover] = useState(false);
 
   /* ================= COVER ================= */
@@ -81,8 +75,6 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
       body: JSON.stringify({
         title,
         synopsis,
-
-        /* 🆕 GENRE */
         genre,
       }),
       credentials: "include",
@@ -102,23 +94,50 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
   /* ================= CHAPTER ================= */
 
   async function handleAddChapter() {
-    await fetch("/api/admin/chapter", {
+    // cari nomor terbesar dari chapter yang ada
+    const maxNumber =
+      comic.chapters.length > 0
+        ? Math.max(...comic.chapters.map((c) => c.number))
+        : 0;
+
+    const nextNumber = maxNumber + 1;
+
+    const res = await fetch("/api/admin/chapter", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ comicId: comic.id }),
+      body: JSON.stringify({
+        comicId: comic.id,
+        number: nextNumber,
+        title: `Chapter ${nextNumber}`,
+      }),
       credentials: "include",
     });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "Gagal tambah chapter");
+      return;
+    }
 
     router.refresh();
   }
 
+  /* ================= DELETE CHAPTER ================= */
   async function handleDeleteChapter(id: number) {
-    if (!confirm("Hapus chapter ini?")) return;
+    const ok = confirm("Hapus chapter ini?");
+    if (!ok) return;
 
-    await fetch(`/api/admin/chapter/${id}`, {
+    const res = await fetch(`/api/admin/chapter/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
+    
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("DELETE FAILED:", text);
+      alert("Gagal hapus chapter");
+      return;
+    }
 
     router.refresh();
   }
@@ -191,7 +210,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
           />
         </div>
 
-        {/* 🆕 GENRE */}
+        {/* GENRE */}
         <div>
           <label className="text-sm text-slate-400">Genre</label>
           <input
@@ -212,8 +231,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
           />
         </div>
 
-        {/* ================= BUTTON ================= */}
-
+        {/* BUTTON */}
         <div className="flex gap-3">
           <button
             onClick={handleSave}
@@ -221,8 +239,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             className={`
               px-4 py-2 rounded-lg transition-all duration-300
               ${saving ? "bg-purple-400 opacity-60" : "bg-purple-600"}
-            `}
-          >
+            `}>
             {saving ? "Saving..." : saved ? "Saved ✓" : "Save"}
           </button>
         </div>
@@ -236,8 +253,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
             {comic.chapters.map((ch) => (
               <div
                 key={ch.id}
-                className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg px-4 py-2"
-              >
+                className="flex justify-between items-center bg-slate-900 border border-slate-700 rounded-lg px-4 py-2">
                 <span>Chapter {ch.number}</span>
 
                 <div className="flex items-center gap-3">
@@ -259,8 +275,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
                   <button
                     onClick={() => handleDeleteChapter(ch.id)}
-                    className="text-red-400 hover:text-red-500 text-lg"
-                  >
+                    className="text-red-400 hover:text-red-500 text-lg">
                     ✕
                   </button>
                 </div>
@@ -270,8 +285,7 @@ export default function EditComicForm({ comic }: { comic: Comic }) {
 
           <button
             onClick={handleAddChapter}
-            className="mt-3 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10"
-          >
+            className="mt-3 px-4 py-2 rounded-lg border border-dashed border-purple-500 text-purple-400 hover:bg-purple-500/10">
             + Add Chapter
           </button>
         </div>
